@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { CloseIcon } from '../icons/Icons';
+import { tabukHealthClusterLogo } from './Logo';
+
+interface AboutModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
+    const [isClosing, setIsClosing] = useState(false);
+    const [metadata, setMetadata] = useState<{name: string, description: string} | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetch('./metadata.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => setMetadata(data))
+                .catch(error => {
+                    console.error("Error fetching metadata:", error);
+                    setMetadata({ name: "خطأ", description: "لا يمكن تحميل بيانات التطبيق" });
+                });
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [isOpen]);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+            setIsClosing(false);
+        }, 300);
+    };
+
+    if (!isOpen) {
+        return null;
+    }
+
+    const modalRoot = document.getElementById('modal-root');
+    if (!modalRoot) return null;
+
+    return ReactDOM.createPortal(
+        <div
+            className="fixed inset-0 z-50 flex justify-center items-center p-4"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div
+                className={`fixed inset-0 bg-black ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                onClick={handleClose}
+                aria-hidden="true"
+            ></div>
+            <div
+                className={`relative bg-white rounded-2xl shadow-xl w-full max-w-md m-4 transform ${isClosing ? 'animate-modal-out' : 'animate-modal-in'} dark:bg-gray-800`}
+            >
+                <div className="p-6 md:p-8">
+                    <button
+                        onClick={handleClose}
+                        className="absolute top-4 left-4 text-gray-400 hover:text-gray-800 transition-all duration-300 z-10 p-2 bg-gray-100/50 rounded-full dark:bg-gray-700/50 dark:text-gray-300 dark:hover:text-white hover:bg-gray-200/80 transform hover:rotate-90"
+                    >
+                        <CloseIcon className="w-6 h-6" />
+                    </button>
+                    <div className="text-center">
+                         <img src={tabukHealthClusterLogo} alt="شعار تجمع تبوك الصحي" className="w-24 h-auto mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-primary mb-2 dark:text-white">{metadata?.name || 'تحميل...'}</h2>
+                        <p className="text-sm text-gray-500 mb-4 font-semibold dark:text-gray-400">الإصدار 1.0.0</p>
+                        <p className="text-gray-600 bg-gray-50 p-4 rounded-lg text-base leading-relaxed mb-6 dark:bg-gray-700 dark:text-gray-300">
+                            {metadata?.description || '...'}
+                        </p>
+                        <a 
+                            href="https://www.moh.gov.sa" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="inline-block bg-primary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:-translate-y-0.5"
+                        >
+                            زيارة موقع وزارة الصحة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>,
+        modalRoot
+    );
+};
+
+export default AboutModal;

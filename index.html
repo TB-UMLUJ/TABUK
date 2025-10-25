@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دليل تجمع تبوك الصحي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: '#007A4D',
+                light: '#E6F2ED',
+                dark: '#005C3A'
+              },
+              accent: {
+                DEFAULT: '#9b945f',
+                light: '#F5F4EF',
+                dark: '#827c51'
+              },
+              favorite: '#F2CD00',
+              danger: '#C8102E',
+              gray: {
+                50: '#F9FAFB',
+                100: '#F3F4F6',
+                200: '#E5E7EB',
+                300: '#D1D5DB',
+                400: '#9CA3AF',
+                500: '#6B7280',
+                600: '#4B5563',
+                700: '#374151',
+                800: '#1F2937',
+                900: '#111827'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Tajawal', sans-serif;
+      }
+      .dark {
+        background-color: #111827;
+        background-image: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+       @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+       .animate-fade-out {
+        animation: fadeOut 0.5s ease-in-out forwards;
+      }
+      @keyframes modal-in {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes modal-out {
+        from { opacity: 1; transform: translateY(0) scale(1); }
+        to { opacity: 0; transform: translateY(20px) scale(0.95); }
+      }
+      @keyframes backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 0.6; }
+      }
+      @keyframes backdrop-out {
+        from { opacity: 0.6; }
+        to { opacity: 0; }
+      }
+      .animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-modal-out { animation: modal-out 0.3s ease-out forwards; }
+      .animate-backdrop-in { animation: backdrop-in 0.3s ease-out forwards; }
+      .animate-backdrop-out { animation: backdrop-out 0.3s ease-out forwards; }
+      
+      /* Toast Notifications */
+      .toast-container {
+          position: fixed;
+          top: 1.5rem;
+          left: 1.5rem;
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+      }
+      .toast {
+          display: flex;
+          align-items: center;
+          padding: 1rem;
+          border-radius: 0.75rem;
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+          width: 350px;
+          max-width: 90vw;
+          border: 1px solid transparent;
+      }
+      .toast-success { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+      .toast-error { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; }
+      .toast-warning { background-color: #fffbeb; border-color: #fde68a; color: #92400e; }
+      .toast-info { background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+      
+      /* Dark mode toasts */
+      .dark .toast-success { background-color: #052e16; border-color: #166534; color: #a7f3d0; }
+      .dark .toast-error { background-color: #3f1212; border-color: #991b1b; color: #fecaca; }
+      .dark .toast-warning { background-color: #452a03; border-color: #92400e; color: #fde68a; }
+      .dark .toast-info { background-color: #1e293b; border-color: #1e40af; color: #bfdbfe; }
+      .dark .toast button:hover { background-color: rgba(255, 255, 255, 0.1); }
+      
+      @keyframes toast-in-left {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes toast-out-left {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(-100%); opacity: 0; }
+      }
+      .animate-toast-in { animation: toast-in-left 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) forwards; }
+      .animate-toast-out { animation: toast-out-left 0.5s ease-in-out forwards; }
+    </style>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
