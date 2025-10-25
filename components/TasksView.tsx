@@ -13,8 +13,8 @@ interface TasksViewProps {
 
 const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onDeleteTask, onToggleComplete }) => {
     const { upcomingTasks, completedTasks } = useMemo(() => {
-        const upcoming = tasks.filter(t => !t.isCompleted).sort((a, b) => (a.dueDate || 'z').localeCompare(b.dueDate || 'z'));
-        const completed = tasks.filter(t => t.isCompleted).sort((a, b) => (b.dueDate || 'a').localeCompare(a.dueDate || 'a'));
+        const upcoming = tasks.filter(t => !t.is_completed).sort((a, b) => (a.due_date || 'z').localeCompare(b.due_date || 'z'));
+        const completed = tasks.filter(t => t.is_completed).sort((a, b) => (b.due_date || 'a').localeCompare(a.due_date || 'a'));
         return { upcomingTasks: upcoming, completedTasks: completed };
     }, [tasks]);
 

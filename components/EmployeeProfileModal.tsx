@@ -41,8 +41,8 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
     }, [onClose]);
 
     const handleCall = useCallback(() => {
-        if (employee?.phoneDirect) {
-            window.location.href = `tel:${employee.phoneDirect}`;
+        if (employee?.phone_direct) {
+            window.location.href = `tel:${employee.phone_direct}`;
         }
     }, [employee]);
 
@@ -121,18 +121,18 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 mb-6">
                         <div className="text-center flex-shrink-0">
                              <div className="w-32 h-32 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center mx-auto border-4 border-gray-200 dark:border-gray-600 dark:bg-gray-700">
-                                <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.fullNameAr)}</span>
+                                <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar)}</span>
                             </div>
                         </div>
                         <div className="flex-1 text-center md:text-right w-full">
-                            <h2 className="text-3xl font-bold text-primary dark:text-white">{employee.fullNameAr}</h2>
-                            <p className="text-lg text-accent-dark font-semibold dark:text-accent-light">{employee.jobTitle}</p>
-                            <p className="text-md text-gray-400 dark:text-gray-500">{employee.fullNameEn}</p>
+                            <h2 className="text-3xl font-bold text-primary dark:text-white">{employee.full_name_ar}</h2>
+                            <p className="text-lg text-accent-dark font-semibold dark:text-accent-light">{employee.job_title}</p>
+                            <p className="text-md text-gray-400 dark:text-gray-500">{employee.full_name_en}</p>
                             
                             <div className="mt-6 flex items-center justify-center md:justify-end gap-2">
                                 <button
                                     onClick={handleCall}
-                                    disabled={!employee.phoneDirect}
+                                    disabled={!employee.phone_direct}
                                     className="text-center bg-primary text-white p-3 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                                     aria-label="اتصال"
                                     title="اتصال"
@@ -163,19 +163,19 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                     </div>
                     
                     <div className="border-t border-gray-200 pt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 dark:border-gray-700">
-                        <InfoRow label="الاسم باللغة العربية" value={employee.fullNameAr} icon={<UserIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="الاسم باللغة الإنجليزية" value={employee.fullNameEn} icon={<UserIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="الرقم الوظيفي" value={employee.employeeId} icon={<IdentificationIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="المسمى الوظيفي" value={employee.jobTitle} icon={<BriefcaseIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="الاسم باللغة العربية" value={employee.full_name_ar} icon={<UserIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="الاسم باللغة الإنجليزية" value={employee.full_name_en} icon={<UserIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="الرقم الوظيفي" value={employee.employee_id} icon={<IdentificationIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="المسمى الوظيفي" value={employee.job_title} icon={<BriefcaseIcon className="w-5 h-5"/>}/>
                         <InfoRow label="القطاع" value={employee.department} icon={<BuildingOfficeIcon className="w-5 h-5"/>}/>
                         <InfoRow label="المركز" value={employee.center} icon={<BuildingOfficeIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="رقم الجوال" value={employee.phoneDirect} icon={<PhoneIcon className="w-5 h-5"/>} href={`tel:${employee.phoneDirect}`} />
+                        <InfoRow label="رقم الجوال" value={employee.phone_direct} icon={<PhoneIcon className="w-5 h-5"/>} href={`tel:${employee.phone_direct}`} />
                         <InfoRow label="البريد الإلكتروني" value={employee.email} icon={<EmailIcon className="w-5 h-5"/>} href={`mailto:${employee.email}`} />
-                        <InfoRow label="السجل المدني / الإقامة" value={employee.nationalId} icon={<IdentificationIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="السجل المدني / الإقامة" value={employee.national_id} icon={<IdentificationIcon className="w-5 h-5"/>}/>
                         <InfoRow label="الجنسية" value={employee.nationality} icon={<GlobeAltIcon className="w-5 h-5"/>}/>
                         <InfoRow label="الجنس" value={employee.gender} icon={<UsersIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="تاريخ الميلاد" value={employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined} icon={<CakeIcon className="w-5 h-5"/>}/>
-                        <InfoRow label="رقم التصنيف" value={employee.classificationId} icon={<DocumentCheckIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="تاريخ الميلاد" value={employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined} icon={<CakeIcon className="w-5 h-5"/>}/>
+                        <InfoRow label="رقم التصنيف" value={employee.classification_id} icon={<DocumentCheckIcon className="w-5 h-5"/>}/>
                     </div>
                 </div>
             </div>

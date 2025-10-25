@@ -3,7 +3,7 @@ import { Transaction } from '../types';
 export const mockTransactions: Transaction[] = [
   {
     id: 1,
-    transactionNumber: 'THC-2024-001',
+    transaction_number: 'THC-2024-001',
     subject: 'طلب توفير أجهزة حاسب آلي لقسم الطوارئ',
     type: 'incoming',
     platform: 'Bain',
@@ -13,7 +13,7 @@ export const mockTransactions: Transaction[] = [
   },
   {
     id: 2,
-    transactionNumber: 'THC-2024-002',
+    transaction_number: 'THC-2024-002',
     subject: 'الرد على استفسار بخصوص إجازات الموظفين',
     type: 'outgoing',
     platform: 'HospitalEmail',
@@ -23,7 +23,7 @@ export const mockTransactions: Transaction[] = [
   },
   {
     id: 3,
-    transactionNumber: 'THC-2024-003',
+    transaction_number: 'THC-2024-003',
     subject: 'تعميم بخصوص إجراءات السلامة الجديدة',
     type: 'incoming',
     platform: 'MinisterEmail',
@@ -32,7 +32,7 @@ export const mockTransactions: Transaction[] = [
   },
   {
     id: 4,
-    transactionNumber: 'THC-2024-004',
+    transaction_number: 'THC-2024-004',
     subject: 'متابعة تقرير الصيانة الدورية للمبنى الرئيسي',
     type: 'outgoing',
     platform: 'Bain',

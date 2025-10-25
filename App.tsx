@@ -1,13 +1,10 @@
 
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { supabase } from './lib/supabaseClient';
+import { PostgrestError } from '@supabase/supabase-js';
 import { Employee, OfficeContact, Task, Transaction } from './types';
-import { mockEmployees } from './data/mockEmployees';
-import { mockOfficeDirectory } from './data/mockOfficeDirectory';
-import { mockTasks } from './data/mockTasks';
-import { mockTransactions } from './data/mockTransactions';
 import Header from './components/Header';
-// Fix: Import SearchAndFilterRef to resolve type error.
 import SearchAndFilter, { SearchAndFilterRef } from './components/SearchAndFilter';
 import EmployeeList from './components/EmployeeList';
 import EmployeeProfileModal from './components/EmployeeProfileModal';
@@ -39,30 +36,13 @@ const App: React.FC = () => {
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
     const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
     
-    // Employee State
-    const [employees, setEmployees] = useState<Employee[]>(() => {
-        const saved = localStorage.getItem('employees');
-        return saved ? JSON.parse(saved) : mockEmployees;
-    });
-    
-    // Office Contacts State
-    const [officeContacts, setOfficeContacts] = useState<OfficeContact[]>(() => {
-        const saved = localStorage.getItem('officeContacts');
-        return saved ? JSON.parse(saved) : mockOfficeDirectory;
-    });
-
-    // Tasks State
-    const [tasks, setTasks] = useState<Task[]>(() => {
-        const saved = localStorage.getItem('tasks');
-        return saved ? JSON.parse(saved) : mockTasks;
-    });
-    
-    // Transactions State
-    const [transactions, setTransactions] = useState<Transaction[]>(() => {
-        const saved = localStorage.getItem('transactions');
-        return saved ? JSON.parse(saved) : mockTransactions;
-    });
-
+    // Data State
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [officeContacts, setOfficeContacts] = useState<OfficeContact[]>([]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [favorites, setFavorites] = useState<number[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // UI & Filter State
     const [searchTerm, setSearchTerm] = useState('');
@@ -84,25 +64,70 @@ const App: React.FC = () => {
     
     const searchAndFilterRef = useRef<SearchAndFilterRef>(null);
 
-    const [favorites, setFavorites] = useState<number[]>(() => {
-        const savedFavorites = localStorage.getItem('employee_favorites');
-        return savedFavorites ? JSON.parse(savedFavorites) : [];
-    });
-    
-    // --- LocalStorage useEffects ---
-    useEffect(() => { localStorage.setItem('employee_favorites', JSON.stringify(favorites)); }, [favorites]);
-    useEffect(() => { localStorage.setItem('employees', JSON.stringify(employees)); }, [employees]);
-    useEffect(() => { localStorage.setItem('officeContacts', JSON.stringify(officeContacts)); }, [officeContacts]);
-    useEffect(() => { localStorage.setItem('tasks', JSON.stringify(tasks)); }, [tasks]);
-    useEffect(() => { localStorage.setItem('transactions', JSON.stringify(transactions)); }, [transactions]);
+    // --- Data Fetching from Supabase ---
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [
+                    { data: employeesData, error: employeesError },
+                    { data: contactsData, error: contactsError },
+                    { data: tasksData, error: tasksError },
+                    { data: transactionsData, error: transactionsError },
+                    { data: favoritesData, error: favoritesError }
+                ] = await Promise.all([
+                    supabase.from('employees').select('*').order('full_name_ar', { ascending: true }),
+                    supabase.from('office_contacts').select('*').order('name', { ascending: true }),
+                    supabase.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }),
+                    supabase.from('transactions').select('*').order('date', { ascending: false }),
+                    supabase.from('employee_favorites').select('employee_id')
+                ]);
+
+                if (employeesError) throw employeesError;
+                if (contactsError) throw contactsError;
+                if (tasksError) throw tasksError;
+                if (transactionsError) throw transactionsError;
+                if (favoritesError) throw favoritesError;
+
+                setEmployees(employeesData || []);
+                setOfficeContacts(contactsData || []);
+                setTasks(tasksData || []);
+                setTransactions(transactionsData || []);
+                setFavorites(favoritesData ? favoritesData.map((f: any) => f.employee_id) : []);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                const postgrestError = error as PostgrestError;
+                addToast(`فشل في جلب البيانات: ${postgrestError.message}`, 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (isAuthenticated) {
+            fetchData();
+        }
+    }, [isAuthenticated, addToast]);
 
 
-    const toggleFavorite = (employeeId: number) => {
-        setFavorites(prev => 
-            prev.includes(employeeId) 
-                ? prev.filter(id => id !== employeeId) 
-                : [...prev, employeeId]
-        );
+    const toggleFavorite = async (employeeId: number) => {
+        const isCurrentlyFavorite = favorites.includes(employeeId);
+        
+        if (isCurrentlyFavorite) {
+            const { error } = await supabase.from('employee_favorites').delete().eq('employee_id', employeeId);
+            if (error) {
+                addToast('خطأ في إزالة من المفضلة', 'error');
+            } else {
+                setFavorites(prev => prev.filter(id => id !== employeeId));
+            }
+        } else {
+            const { error } = await supabase.from('employee_favorites').insert({ employee_id: employeeId });
+            if (error) {
+                addToast('خطأ في الإضافة إلى المفضلة', 'error');
+            } else {
+                setFavorites(prev => [...prev, employeeId]);
+            }
+        }
     };
 
     const departments = useMemo(() => ['all', ...Array.from(new Set(employees.map(e => e.department)))], [employees]);
@@ -110,16 +135,16 @@ const App: React.FC = () => {
     const filteredEmployees = useMemo(() => {
         return employees.filter(employee => {
             const matchesSearch = searchTerm === '' ||
-                employee.fullNameAr.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.fullNameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
+                employee.full_name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                employee.full_name_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                employee.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                employee.employee_id.toLowerCase().includes(searchTerm.toLowerCase());
             
             const matchesDepartment = departmentFilter === 'all' || employee.department === departmentFilter;
             const matchesFavorites = !showFavorites || favorites.includes(employee.id);
 
             return matchesSearch && matchesDepartment && matchesFavorites;
-        }).sort((a, b) => a.fullNameAr.localeCompare(b.fullNameAr, 'ar'));
+        }).sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar'));
     }, [employees, searchTerm, departmentFilter, showFavorites, favorites]);
 
     // --- Authentication Handlers ---
@@ -138,20 +163,21 @@ const App: React.FC = () => {
     };
 
     // --- Employee Handlers ---
-    const handleSaveEmployee = (employeeData: Omit<Employee, 'id'> & { id?: number }) => {
-        if (employeeData.id) {
-            setEmployees(prev => prev.map(emp => (emp.id === employeeData.id ? { ...emp, ...employeeData } as Employee : emp)));
-            addToast('تم تحديث بيانات الموظف بنجاح!', 'success');
-        } else {
-            setEmployees(prev => {
-                const maxId = Math.max(0, ...prev.map(e => e.id));
-                const newEmployee: Employee = { id: maxId + 1, ...employeeData };
-                return [...prev, newEmployee].sort((a, b) => a.fullNameAr.localeCompare(b.fullNameAr, 'ar'));
-            });
-            addToast('تمت إضافة الموظف بنجاح!', 'success');
+    const handleSaveEmployee = async (employeeData: Omit<Employee, 'id'> & { id?: number }) => {
+        const { data, error } = await supabase.from('employees').upsert(employeeData).select();
+
+        if (error) {
+            addToast(`خطأ في حفظ الموظف: ${error.message}`, 'error');
+        } else if (data) {
+            if (employeeData.id) {
+                setEmployees(prev => prev.map(emp => (emp.id === data[0].id ? data[0] : emp)));
+            } else {
+                setEmployees(prev => [...prev, data[0]].sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar')));
+            }
+            addToast(employeeData.id ? 'تم تحديث الموظف بنجاح!' : 'تمت إضافة الموظف بنجاح!', 'success');
+            setShowAddEmployeeModal(false);
+            setEmployeeToEdit(null);
         }
-        setShowAddEmployeeModal(false);
-        setEmployeeToEdit(null);
     };
 
     const handleOpenAddModal = () => {
@@ -165,10 +191,15 @@ const App: React.FC = () => {
         setShowAddEmployeeModal(true);
     };
 
-    const handleDeleteEmployee = useCallback((employeeId: number) => {
-        setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
-        setSelectedEmployee(null); // Close the modal
-        addToast('تم حذف الموظف بنجاح.', 'success');
+    const handleDeleteEmployee = useCallback(async (employeeId: number) => {
+        const { error } = await supabase.from('employees').delete().eq('id', employeeId);
+        if (error) {
+            addToast(`خطأ في حذف الموظف: ${error.message}`, 'error');
+        } else {
+            setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
+            setSelectedEmployee(null);
+            addToast('تم حذف الموظف بنجاح.', 'success');
+        }
     }, [addToast]);
 
     // --- Office Contact Handlers ---
@@ -176,36 +207,54 @@ const App: React.FC = () => {
         setContactToEdit(contact);
     };
 
-    const handleSaveOfficeContact = (contactData: OfficeContact) => {
-        setOfficeContacts(prev => prev.map(c => (c.id === contactData.id ? contactData : c)));
-        addToast(`تم تحديث بيانات مكتب "${contactData.name}" بنجاح.`, 'success');
-        setContactToEdit(null); // Close modal
+    const handleSaveOfficeContact = async (contactData: OfficeContact) => {
+        const { data, error } = await supabase.from('office_contacts').update(contactData).eq('id', contactData.id).select();
+        if (error) {
+            addToast(`خطأ في تحديث المكتب: ${error.message}`, 'error');
+        } else if (data) {
+            setOfficeContacts(prev => prev.map(c => (c.id === data[0].id ? data[0] : c)));
+            addToast(`تم تحديث بيانات مكتب "${data[0].name}" بنجاح.`, 'success');
+            setContactToEdit(null);
+        }
     };
 
     // --- Task Handlers ---
-    const handleSaveTask = (taskData: Omit<Task, 'id'> & { id?: number }) => {
-        if (taskData.id) {
-            setTasks(prev => prev.map(t => (t.id === taskData.id ? { ...t, ...taskData } as Task : t)));
-            addToast('تم تحديث المهمة بنجاح!', 'success');
-        } else {
-            setTasks(prev => {
-                const maxId = Math.max(0, ...prev.map(t => t.id));
-                const newTask: Task = { id: maxId + 1, ...taskData, isCompleted: false };
-                return [...prev, newTask];
-            });
-            addToast('تمت إضافة المهمة بنجاح!', 'success');
+    const handleSaveTask = async (taskData: Omit<Task, 'id'> & { id?: number }) => {
+        const { data, error } = await supabase.from('tasks').upsert(taskData).select();
+        if (error) {
+            addToast(`خطأ في حفظ المهمة: ${error.message}`, 'error');
+        } else if (data) {
+            if (taskData.id) {
+                setTasks(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
+            } else {
+                setTasks(prev => [...prev, data[0]]);
+            }
+            addToast(taskData.id ? 'تم تحديث المهمة بنجاح!' : 'تمت إضافة المهمة بنجاح!', 'success');
+            setShowAddTaskModal(false);
+            setTaskToEdit(null);
         }
-        setShowAddTaskModal(false);
-        setTaskToEdit(null);
     };
 
-    const handleDeleteTask = (taskId: number) => {
-        setTasks(prev => prev.filter(t => t.id !== taskId));
-        addToast('تم حذف المهمة.', 'success');
+    const handleDeleteTask = async (taskId: number) => {
+        const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+        if (error) {
+            addToast(`خطأ في حذف المهمة: ${error.message}`, 'error');
+        } else {
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+            addToast('تم حذف المهمة.', 'success');
+        }
     };
 
-    const handleToggleTaskCompletion = (taskId: number) => {
-        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t)));
+    const handleToggleTaskCompletion = async (taskId: number) => {
+        const taskToToggle = tasks.find(t => t.id === taskId);
+        if (!taskToToggle) return;
+        
+        const { error } = await supabase.from('tasks').update({ is_completed: !taskToToggle.is_completed }).eq('id', taskId);
+        if (error) {
+            addToast(`خطأ في تحديث حالة المهمة: ${error.message}`, 'error');
+        } else {
+            setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, is_completed: !t.is_completed } : t)));
+        }
     };
     
     const handleOpenAddTaskModal = () => {
@@ -219,26 +268,31 @@ const App: React.FC = () => {
     };
 
     // --- Transaction Handlers ---
-    const handleSaveTransaction = (transactionData: Omit<Transaction, 'id'> & { id?: number }) => {
-        if (transactionData.id) {
-            setTransactions(prev => prev.map(t => (t.id === transactionData.id ? { ...t, ...transactionData } as Transaction : t)));
-            addToast('تم تحديث المعاملة بنجاح!', 'success');
-        } else {
-            setTransactions(prev => {
-                const maxId = Math.max(0, ...prev.map(t => t.id));
-                const newTransaction: Transaction = { id: maxId + 1, ...transactionData } as Transaction;
-                return [...prev, newTransaction];
-            });
-            addToast('تمت إضافة المعاملة بنجاح!', 'success');
+    const handleSaveTransaction = async (transactionData: Omit<Transaction, 'id'> & { id?: number }) => {
+        const { data, error } = await supabase.from('transactions').upsert(transactionData).select();
+        if (error) {
+             addToast(`خطأ في حفظ المعاملة: ${error.message}`, 'error');
+        } else if (data) {
+            if (transactionData.id) {
+                setTransactions(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
+            } else {
+                setTransactions(prev => [...prev, data[0]]);
+            }
+            addToast(transactionData.id ? 'تم تحديث المعاملة بنجاح!' : 'تمت إضافة المعاملة بنجاح!', 'success');
+            setShowAddTransactionModal(false);
+            setTransactionToEdit(null);
         }
-        setShowAddTransactionModal(false);
-        setTransactionToEdit(null);
     };
 
-    const handleDeleteTransaction = (transactionId: number) => {
-        setTransactions(prev => prev.filter(t => t.id !== transactionId));
-        setSelectedTransaction(null); // Close detail modal if open
-        addToast('تم حذف المعاملة.', 'success');
+    const handleDeleteTransaction = async (transactionId: number) => {
+        const { error } = await supabase.from('transactions').delete().eq('id', transactionId);
+        if(error) {
+            addToast(`خطأ في حذف المعاملة: ${error.message}`, 'error');
+        } else {
+            setTransactions(prev => prev.filter(t => t.id !== transactionId));
+            setSelectedTransaction(null);
+            addToast('تم حذف المعاملة.', 'success');
+        }
     };
 
     const handleOpenAddTransactionModal = () => {
@@ -247,7 +301,7 @@ const App: React.FC = () => {
     };
 
     const handleOpenEditTransactionModal = (transaction: Transaction) => {
-        setSelectedTransaction(null); // Close detail view first
+        setSelectedTransaction(null);
         setTransactionToEdit(transaction);
         setShowAddTransactionModal(true);
     };
@@ -256,134 +310,123 @@ const App: React.FC = () => {
     const handleImport = (file: File) => {
         setIsImporting(true);
         const reader = new FileReader();
-        reader.onload = (e) => {
-            setTimeout(() => {
-                try {
-                    const data = e.target?.result;
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" }) as any[];
-                    // ... (rest of the complex import logic remains unchanged)
-                    if (json.length === 0) {
-                        addToast("الملف فارغ أو لا يحتوي على بيانات.", 'warning');
-                        return;
-                    }
+        reader.onload = async (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" }) as any[];
 
-                    const header = Object.keys(json[0]);
-                    type EmployeeKey = keyof Employee;
-                    type ColumnMap = { [key in EmployeeKey]?: string | null };
-
-                    const columnMap: ColumnMap = {};
-
-                     const aliases: { [key in keyof Omit<Employee, 'id'>]: string[] } = {
-                        employeeId: ['الرقم الوظيفي', 'employeeid', 'id', 'رقم الموظف', 'الرقم التعريفي'],
-                        fullNameAr: ['الاسم باللغة العربية', 'الاسم الكامل (عربي)', 'الاسم', 'fullnamear', 'arabic name', 'الاسم بالعربي', 'اسم الموظف'],
-                        fullNameEn: ['الاسم باللغة الانجليزية', 'الاسم الكامل (انجليزي)', 'fullnameen', 'english name', 'الاسم بالانجليزي'],
-                        jobTitle: ['المسمى الوظيفي', 'jobtitle', 'الوظيفة', 'position', 'المنصب'],
-                        department: ['القطاع', 'القسم', 'department', 'الإدارة'],
-                        center: ['المركز', 'center'],
-                        phoneDirect: ['رقم الجوال', 'الهاتف المباشر', 'phonedirect', 'mobile', 'الجوال', 'phone'],
-                        email: ['الايميل', 'البريد الإلكتروني', 'email'],
-                        nationalId: ['السجل المدني / الإقامة', 'nationalid', 'السجل المدني', 'الإقامة', 'رقم الهوية'],
-                        nationality: ['الجنسية', 'nationality'],
-                        gender: ['الجنس', 'gender', 'النوع'],
-                        dateOfBirth: ['تاريخ الميلاد', 'dateofbirth', 'dob'],
-                        classificationId: ['رقم التصنيف', 'classificationid']
-                    };
-
-                    for (const key in aliases) {
-                        const typedKey = key as keyof typeof aliases;
-                        const possibleNames = aliases[typedKey];
-                        const foundHeader = header.find(h => possibleNames.some(p => h.toLowerCase().trim() === p.toLowerCase().trim()));
-                        if (foundHeader) {
-                            columnMap[typedKey] = foundHeader;
-                        }
-                    }
-                    
-                    const requiredKeys: (keyof typeof aliases)[] = ['employeeId', 'fullNameAr', 'jobTitle', 'department'];
-                    const missingHeaders = requiredKeys
-                        .filter(key => !columnMap[key])
-                        .map(key => aliases[key][0]);
-
-                    if (missingHeaders.length > 0) {
-                        addToast(`الملف غير صالح. الأعمدة الأساسية التالية مفقودة: ${missingHeaders.join(', ')}`, 'error');
-                        return;
-                    }
-
-                    let addedCount = 0;
-                    let updatedCount = 0;
-
-                    setEmployees(prevEmployees => {
-                        const employeesCopy = [...prevEmployees];
-                        let maxId = Math.max(0, ...employeesCopy.map(e => e.id));
-
-                        json.forEach((row: any) => {
-                            const employeeId = String(row[columnMap.employeeId!] || '').trim();
-                            if (!employeeId || !row[columnMap.fullNameAr!]) return;
-                            
-                            const parseDate = (rawDate: any): string | undefined => {
-                                if (!rawDate) return undefined;
-                                if (rawDate instanceof Date) return rawDate.toISOString();
-                                if (typeof rawDate === 'string' || typeof rawDate === 'number') {
-                                     const parsedDate = new Date(rawDate);
-                                     if (!isNaN(parsedDate.getTime())) {
-                                         if (typeof rawDate === 'number') {
-                                              return new Date(Date.UTC(1899, 11, 30 + rawDate)).toISOString();
-                                         }
-                                         return parsedDate.toISOString();
-                                     }
-                                }
-                                return undefined;
-                            };
-                            
-                            const dobISO = parseDate(columnMap.dateOfBirth ? row[columnMap.dateOfBirth] : null);
-
-                            const employeeDataFromRow = {
-                                employeeId,
-                                fullNameAr: row[columnMap.fullNameAr!],
-                                jobTitle: row[columnMap.jobTitle!],
-                                department: row[columnMap.department!],
-                                fullNameEn: columnMap.fullNameEn ? row[columnMap.fullNameEn] : '',
-                                phoneDirect: columnMap.phoneDirect ? String(row[columnMap.phoneDirect] || '') : '',
-                                email: columnMap.email ? row[columnMap.email] : '',
-                                center: columnMap.center ? String(row[columnMap.center] || '') : undefined,
-                                nationalId: columnMap.nationalId ? String(row[columnMap.nationalId] || '') : undefined,
-                                nationality: columnMap.nationality ? String(row[columnMap.nationality] || '') : undefined,
-                                gender: columnMap.gender ? String(row[columnMap.gender] || '') : undefined,
-                                dateOfBirth: dobISO,
-                                classificationId: columnMap.classificationId ? String(row[columnMap.classificationId] || '') : undefined,
-                            };
-
-                            const existingEmployeeIndex = employeesCopy.findIndex(emp => emp.employeeId === employeeId);
-
-                            if (existingEmployeeIndex !== -1) {
-                                const existingEmployee = employeesCopy[existingEmployeeIndex];
-                                employeesCopy[existingEmployeeIndex] = { ...existingEmployee, ...employeeDataFromRow, fullNameEn: employeeDataFromRow.fullNameEn || existingEmployee.fullNameEn };
-                                updatedCount++;
-                            } else {
-                                maxId++;
-                                const newEmployee: Employee = { id: maxId, ...employeeDataFromRow, fullNameEn: employeeDataFromRow.fullNameEn || `Employee #${maxId}` };
-                                employeesCopy.push(newEmployee);
-                                addedCount++;
-                            }
-                        });
-
-                        if (addedCount > 0 || updatedCount > 0) {
-                            addToast(`تم إضافة ${addedCount} وتحديث ${updatedCount} موظفاً بنجاح.`, 'success');
-                        } else {
-                            addToast("لم يتم العثور على بيانات جديدة.", 'warning');
-                        }
-                        
-                        return employeesCopy.sort((a, b) => a.fullNameAr.localeCompare(b.fullNameAr, 'ar'));
-                    });
-                } catch (error) {
-                    console.error("Error parsing Excel file:", error);
-                    addToast("حدث خطأ أثناء معالجة الملف.", 'error');
-                } finally {
+                if (json.length === 0) {
+                    addToast("الملف فارغ أو لا يحتوي على بيانات.", 'warning');
                     setIsImporting(false);
+                    return;
                 }
-            }, 50);
+                
+                const header = Object.keys(json[0]);
+                type EmployeeKey = keyof Employee;
+                type ColumnMap = { [key in EmployeeKey]?: string | null };
+
+                const columnMap: ColumnMap = {};
+                const aliases: { [key in keyof Omit<Employee, 'id'>]: string[] } = {
+                    employee_id: ['الرقم الوظيفي', 'employeeid', 'id', 'رقم الموظف', 'الرقم التعريفي'],
+                    full_name_ar: ['الاسم باللغة العربية', 'الاسم الكامل (عربي)', 'الاسم', 'fullnamear', 'arabic name', 'الاسم بالعربي', 'اسم الموظف'],
+                    full_name_en: ['الاسم باللغة الانجليزية', 'الاسم الكامل (انجليزي)', 'fullnameen', 'english name', 'الاسم بالانجليزي'],
+                    job_title: ['المسمى الوظيفي', 'jobtitle', 'الوظيفة', 'position', 'المنصب'],
+                    department: ['القطاع', 'القسم', 'department', 'الإدارة'],
+                    center: ['المركز', 'center'],
+                    phone_direct: ['رقم الجوال', 'الهاتف المباشر', 'phonedirect', 'mobile', 'الجوال', 'phone'],
+                    email: ['الايميل', 'البريد الإلكتروني', 'email'],
+                    national_id: ['السجل المدني / الإقامة', 'nationalid', 'السجل المدني', 'الإقامة', 'رقم الهوية'],
+                    nationality: ['الجنسية', 'nationality'],
+                    gender: ['الجنس', 'gender', 'النوع'],
+                    date_of_birth: ['تاريخ الميلاد', 'dateofbirth', 'dob'],
+                    classification_id: ['رقم التصنيف', 'classificationid']
+                };
+
+                for (const key in aliases) {
+                    const typedKey = key as keyof typeof aliases;
+                    const possibleNames = aliases[typedKey];
+                    const foundHeader = header.find(h => possibleNames.some(p => h.toLowerCase().trim() === p.toLowerCase().trim()));
+                    if (foundHeader) {
+                        columnMap[typedKey] = foundHeader;
+                    }
+                }
+                
+                const requiredKeys: (keyof typeof aliases)[] = ['employee_id', 'full_name_ar', 'job_title', 'department'];
+                const missingHeaders = requiredKeys.filter(key => !columnMap[key]).map(key => aliases[key][0]);
+
+                if (missingHeaders.length > 0) {
+                    addToast(`الملف غير صالح. الأعمدة الأساسية مفقودة: ${missingHeaders.join(', ')}`, 'error');
+                    setIsImporting(false);
+                    return;
+                }
+
+                const employeesToUpsert = json.map((row: any) => {
+                    const employee_id = String(row[columnMap.employee_id!] || '').trim();
+                    if (!employee_id || !row[columnMap.full_name_ar!]) return null;
+
+                    const parseDate = (rawDate: any): string | undefined => {
+                        if (!rawDate) return undefined;
+                        if (rawDate instanceof Date) return rawDate.toISOString().split('T')[0];
+                        if (typeof rawDate === 'string' || typeof rawDate === 'number') {
+                             const parsedDate = new Date(rawDate);
+                             if (!isNaN(parsedDate.getTime())) {
+                                 if (typeof rawDate === 'number') {
+                                      // Handle Excel's numeric date format
+                                      return new Date(Date.UTC(0, 0, rawDate - 1)).toISOString().split('T')[0];
+                                 }
+                                 return parsedDate.toISOString().split('T')[0];
+                             }
+                        }
+                        return undefined;
+                    };
+                    
+                    const dobISO = parseDate(columnMap.date_of_birth ? row[columnMap.date_of_birth] : undefined);
+
+                    return {
+                        employee_id,
+                        full_name_ar: row[columnMap.full_name_ar!],
+                        job_title: row[columnMap.job_title!],
+                        department: row[columnMap.department!],
+                        full_name_en: columnMap.full_name_en ? row[columnMap.full_name_en] : '',
+                        phone_direct: columnMap.phone_direct ? String(row[columnMap.phone_direct] || '') : '',
+                        email: columnMap.email ? row[columnMap.email] : '',
+                        center: columnMap.center ? String(row[columnMap.center] || '') : undefined,
+                        national_id: columnMap.national_id ? String(row[columnMap.national_id] || '') : undefined,
+                        nationality: columnMap.nationality ? String(row[columnMap.nationality] || '') : undefined,
+                        gender: columnMap.gender ? String(row[columnMap.gender] || '') : undefined,
+                        date_of_birth: dobISO,
+                        classification_id: columnMap.classification_id ? String(row[columnMap.classification_id] || '') : undefined,
+                    };
+                }).filter(Boolean); // Filter out null (invalid) rows
+
+                if (employeesToUpsert.length > 0) {
+                    const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
+                    
+                    if (upsertError) {
+                        throw upsertError;
+                    }
+
+                    addToast(`تمت معالجة ${employeesToUpsert.length} سجلاً بنجاح.`, 'success');
+
+                    // Refresh data from DB
+                    const { data: updatedEmployees, error: fetchError } = await supabase.from('employees').select('*').order('full_name_ar');
+                    if (!fetchError && updatedEmployees) {
+                        setEmployees(updatedEmployees);
+                    }
+                } else {
+                    addToast("لم يتم العثور على بيانات صالحة للاستيراد.", 'warning');
+                }
+
+            } catch (error) {
+                console.error("Error processing Excel file:", error);
+                const postgrestError = error as PostgrestError;
+                addToast(`حدث خطأ أثناء معالجة الملف: ${postgrestError.message}`, 'error');
+            } finally {
+                setIsImporting(false);
+            }
         };
         reader.onerror = () => {
             setIsImporting(false);
@@ -395,6 +438,17 @@ const App: React.FC = () => {
     if (showWelcome) return <WelcomeScreen />;
     if (!isAuthenticated) return <LoginScreen onLogin={handleLogin} />;
     
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div className="text-center">
+                    <div className="h-16 w-16 mx-auto animate-spin rounded-full border-4 border-gray-300 border-t-primary dark:border-gray-700 dark:border-t-primary"></div>
+                    <p className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 animate-fade-in dark:bg-gray-900 dark:text-gray-300">
             <Header 

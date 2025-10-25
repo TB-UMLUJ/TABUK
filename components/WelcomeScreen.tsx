@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { tabukHealthClusterLogo } from './Logo';
 import { ArrowPathIcon, CheckCircleIcon } from '../icons/Icons';
@@ -27,29 +28,35 @@ const WelcomeScreen: React.FC = () => {
         const timeouts: number[] = [];
 
         // Step 1: Connecting
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 1 ? { ...s, status: 'loading' } : s));
         }, 200));
 
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 1 ? { ...s, text: 'تم الاتصال بنجاح!', status: 'success' } : s));
         }, 1200));
 
         // Step 2: Loading Data
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 2 ? { ...s, status: 'loading' } : s));
         }, 1500));
 
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 2 ? { ...s, text: 'تم تحميل البيانات بنجاح!', status: 'success' } : s));
         }, 2700));
 
         // Step 3: Preparing
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 3 ? { ...s, status: 'loading' } : s));
         }, 3000));
         
-        timeouts.push(setTimeout(() => {
+        // FIX: Use window.setTimeout to ensure the return type is a number, matching the array type.
+        timeouts.push(window.setTimeout(() => {
             setSteps(prev => prev.map(s => s.id === 3 ? { ...s, text: 'تم الدخول!', status: 'success' } : s));
         }, 3500));
 

@@ -40,8 +40,9 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
             map.set(e.department, (map.get(e.department) || 0) + 1), new Map<string, number>())
         ].map(([label, value]) => ({ label, value })).sort((a,b) => b.value - a.value);
         
+        // Fix: Corrected property name from jobTitle to job_title
         const employeesByJobTitle = [...employees.reduce((map, e) => 
-            map.set(e.jobTitle, (map.get(e.jobTitle) || 0) + 1), new Map<string, number>())
+            map.set(e.job_title, (map.get(e.job_title) || 0) + 1), new Map<string, number>())
         ].map(([label, value]) => ({ label, value })).sort((a,b) => b.value - a.value);
 
         return { total, departments, employeesByDepartment, employeesByJobTitle };

@@ -40,7 +40,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onSelect
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusInfo.className}`}>{statusInfo.text}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${typeInfo.className}`}>{typeInfo.text}</span>
-                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 truncate" title={transaction.transactionNumber}>{transaction.transactionNumber}</p>
+                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 truncate" title={transaction.transaction_number}>{transaction.transaction_number}</p>
                 </div>
                 
                 <h3 className="font-bold text-md text-gray-800 dark:text-white">{transaction.subject}</h3>

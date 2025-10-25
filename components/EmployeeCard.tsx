@@ -30,11 +30,11 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect, isFavor
                 <StarIcon className={`w-6 h-6 transition-colors ${isFavorite ? 'text-favorite fill-current' : 'text-gray-300 hover:text-favorite dark:text-gray-500 dark:hover:text-favorite'}`} />
             </button>
             <div className="w-20 h-20 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center border-4 border-gray-100 dark:border-gray-700 dark:bg-gray-700">
-                <span className="text-2xl font-bold text-primary dark:text-primary-light">{getInitials(employee.fullNameAr)}</span>
+                <span className="text-2xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar)}</span>
             </div>
             <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate" title={employee.fullNameAr}>{employee.fullNameAr}</h3>
-                <p className="text-sm text-primary font-semibold dark:text-primary-light truncate" title={employee.jobTitle}>{employee.jobTitle}</p>
+                <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate" title={employee.full_name_ar}>{employee.full_name_ar}</h3>
+                <p className="text-sm text-primary font-semibold dark:text-primary-light truncate" title={employee.job_title}>{employee.job_title}</p>
                 <div className="text-xs text-gray-500 mt-2 flex flex-col items-start gap-1 dark:text-gray-400">
                      <span className="flex items-center gap-1.5 w-full">
                          <BuildingOfficeIcon className="w-3.5 h-3.5 flex-shrink-0"/> 

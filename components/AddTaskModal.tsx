@@ -10,10 +10,10 @@ interface AddTaskModalProps {
     taskToEdit: Task | null;
 }
 
-const initialTaskState: Omit<Task, 'id' | 'isCompleted'> = {
+const initialTaskState: Omit<Task, 'id' | 'is_completed'> = {
     title: '',
     description: '',
-    dueDate: '',
+    due_date: '',
 };
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, taskToEdit }) => {
@@ -21,16 +21,18 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, ta
     const [taskData, setTaskData] = useState(initialTaskState);
 
     useEffect(() => {
-        if (taskToEdit) {
-            setTaskData({
-                title: taskToEdit.title,
-                description: taskToEdit.description || '',
-                dueDate: taskToEdit.dueDate || '',
-            });
-        } else {
-            setTaskData(initialTaskState);
+        if (isOpen) {
+            if (taskToEdit) {
+                setTaskData({
+                    title: taskToEdit.title,
+                    description: taskToEdit.description || '',
+                    due_date: taskToEdit.due_date || '',
+                });
+            } else {
+                setTaskData(initialTaskState);
+            }
         }
-    }, [taskToEdit]);
+    }, [taskToEdit, isOpen]);
 
     useEffect(() => {
         if (isOpen) document.body.style.overflow = 'hidden';
@@ -56,9 +58,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, ta
         const dataToSave: Omit<Task, 'id'> & { id?: number } = {
             ...taskData,
             id: taskToEdit?.id,
-            isCompleted: taskToEdit ? taskToEdit.isCompleted : false,
+            is_completed: taskToEdit ? taskToEdit.is_completed : false,
             description: taskData.description || undefined,
-            dueDate: taskData.dueDate || undefined,
+            due_date: taskData.due_date || undefined,
         };
         onSave(dataToSave);
     };
@@ -104,8 +106,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, ta
                             <textarea id="description" name="description" rows={3} value={taskData.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         <div>
-                            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ الاستحقاق (اختياري)</label>
-                            <input id="dueDate" name="dueDate" type="date" value={taskData.dueDate} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <label htmlFor="due_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ الاستحقاق (اختياري)</label>
+                            <input id="due_date" name="due_date" type="date" value={taskData.due_date} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         
                         <div className="mt-8 flex justify-end gap-3">

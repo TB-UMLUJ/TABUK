@@ -79,7 +79,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
         document.body.removeChild(link);
     }, []);
 
-    const InfoRow: React.FC<{ label: string; value: string | undefined; children?: React.ReactNode }> = ({ label, value, children }) => {
+    const InfoRow: React.FC<{ label: string; value?: string; children?: React.ReactNode }> = ({ label, value, children }) => {
         if (!value && !children) return null;
         return (
             <div className="py-3">
@@ -119,7 +119,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
                     </div>
                     
                     <div className="border-t border-gray-200 pt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 dark:border-gray-700">
-                        <InfoRow label="رقم المعاملة" value={transaction.transactionNumber} />
+                        <InfoRow label="رقم المعاملة" value={transaction.transaction_number} />
                         <InfoRow label="تاريخ المعاملة" value={new Date(transaction.date + 'T00:00:00.000Z').toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}/>
                         <InfoRow label="المنصة" value={platformMap[transaction.platform]}/>
                          <InfoRow label="المرفقات">

@@ -1,19 +1,19 @@
 
 export interface Employee {
   id: number;
-  fullNameAr: string;
-  fullNameEn: string;
-  employeeId: string;
-  jobTitle: string;
+  full_name_ar: string;
+  full_name_en: string;
+  employee_id: string;
+  job_title: string;
   department: string;
-  phoneDirect: string;
+  phone_direct: string;
   email: string;
   center?: string;
-  nationalId?: string;
+  national_id?: string;
   nationality?: string;
   gender?: string;
-  dateOfBirth?: string;
-  classificationId?: string;
+  date_of_birth?: string;
+  classification_id?: string;
 }
 
 export interface OfficeContact {
@@ -27,8 +27,8 @@ export interface Task {
   id: number;
   title: string;
   description?: string;
-  dueDate?: string; // Storing as 'YYYY-MM-DD'
-  isCompleted: boolean;
+  due_date?: string; // Storing as 'YYYY-MM-DD'
+  is_completed: boolean;
 }
 
 export interface Attachment {
@@ -43,7 +43,7 @@ export type TransactionStatus = 'new' | 'inProgress' | 'followedUp' | 'completed
 
 export interface Transaction {
   id: number;
-  transactionNumber: string;
+  transaction_number: string;
   subject: string;
   type: TransactionType;
   platform: TransactionPlatform;

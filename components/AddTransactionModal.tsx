@@ -12,7 +12,7 @@ interface AddTransactionModalProps {
 }
 
 const initialTransactionState: Omit<Transaction, 'id'> = {
-    transactionNumber: '',
+    transaction_number: '',
     subject: '',
     type: 'incoming',
     platform: 'Bain',
@@ -123,8 +123,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="transactionNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم المعاملة<span className="text-danger mr-1">*</span></label>
-                                <input id="transactionNumber" name="transactionNumber" type="text" required value={transactionData.transactionNumber} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                                <label htmlFor="transaction_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم المعاملة<span className="text-danger mr-1">*</span></label>
+                                <input id="transaction_number" name="transaction_number" type="text" required value={transactionData.transaction_number} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                             </div>
                              <div>
                                 <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التاريخ<span className="text-danger mr-1">*</span></label>

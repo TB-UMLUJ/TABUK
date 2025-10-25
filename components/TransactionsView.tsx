@@ -37,7 +37,7 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
             .filter(t => {
                 const matchesSearch = searchTerm === '' ||
                     t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    t.transactionNumber.toLowerCase().includes(searchTerm.toLowerCase());
+                    t.transaction_number.toLowerCase().includes(searchTerm.toLowerCase());
                 
                 const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
                 const matchesPlatform = platformFilter === 'all' || t.platform === platformFilter;

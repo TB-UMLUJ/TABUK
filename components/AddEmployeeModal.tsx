@@ -11,20 +11,20 @@ interface AddEmployeeModalProps {
     employeeToEdit: Employee | null;
 }
 
-const initialEmployeeState: Omit<Employee, 'id' | 'dateOfBirth'> & { dateOfBirth: string } = {
-    fullNameAr: '',
-    fullNameEn: '',
-    employeeId: '',
-    jobTitle: '',
+const initialEmployeeState: Omit<Employee, 'id' | 'date_of_birth'> & { date_of_birth: string } = {
+    full_name_ar: '',
+    full_name_en: '',
+    employee_id: '',
+    job_title: '',
     department: '',
-    phoneDirect: '',
+    phone_direct: '',
     email: '',
     center: '',
-    nationalId: '',
+    national_id: '',
     nationality: '',
     gender: '',
-    dateOfBirth: '',
-    classificationId: '',
+    date_of_birth: '',
+    classification_id: '',
 };
 
 // Define FormInput component outside of the main component to prevent re-creation on re-renders
@@ -61,7 +61,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                 setEmployeeData({
                     ...initialEmployeeState,
                     ...employeeToEdit,
-                    dateOfBirth: employeeToEdit.dateOfBirth ? new Date(employeeToEdit.dateOfBirth).toISOString().split('T')[0] : '',
+                    date_of_birth: employeeToEdit.date_of_birth ? new Date(employeeToEdit.date_of_birth).toISOString().split('T')[0] : '',
                 });
             } else {
                 // Add mode: ensure form is reset
@@ -111,14 +111,14 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
 
         const finalData: Omit<Employee, 'id'> & { id?: number } = {
             ...dataToSave,
-            dateOfBirth: dataToSave.dateOfBirth ? new Date(dataToSave.dateOfBirth + 'T00:00:00.000Z').toISOString() : undefined,
+            date_of_birth: dataToSave.date_of_birth ? new Date(dataToSave.date_of_birth + 'T00:00:00.000Z').toISOString() : undefined,
             id: employeeToEdit?.id,
             // Ensure optional fields are undefined if empty
             center: dataToSave.center || undefined,
-            nationalId: dataToSave.nationalId || undefined,
+            national_id: dataToSave.national_id || undefined,
             nationality: dataToSave.nationality || undefined,
             gender: dataToSave.gender || undefined,
-            classificationId: dataToSave.classificationId || undefined,
+            classification_id: dataToSave.classification_id || undefined,
         };
         onSave(finalData);
     };
@@ -156,10 +156,10 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4">
                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FormInput label="الاسم باللغة العربية" name="fullNameAr" required value={employeeData.fullNameAr} onChange={handleChange} />
-                                <FormInput label="الاسم باللغة الإنجليزية" name="fullNameEn" value={employeeData.fullNameEn} onChange={handleChange} />
-                                <FormInput label="الرقم الوظيفي" name="employeeId" required value={employeeData.employeeId} onChange={handleChange} />
-                                <FormInput label="المسمى الوظيفي" name="jobTitle" required value={employeeData.jobTitle} onChange={handleChange} />
+                                <FormInput label="الاسم باللغة العربية" name="full_name_ar" required value={employeeData.full_name_ar} onChange={handleChange} />
+                                <FormInput label="الاسم باللغة الإنجليزية" name="full_name_en" value={employeeData.full_name_en} onChange={handleChange} />
+                                <FormInput label="الرقم الوظيفي" name="employee_id" required value={employeeData.employee_id} onChange={handleChange} />
+                                <FormInput label="المسمى الوظيفي" name="job_title" required value={employeeData.job_title} onChange={handleChange} />
                                 <FormInput label="القطاع" name="department" required value={employeeData.department} onChange={handleChange} />
                                 <FormInput label="المركز" name="center" value={employeeData.center || ''} onChange={handleChange} />
                             </div>
@@ -167,14 +167,14 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                             <hr className="my-4 dark:border-gray-700" />
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormInput label="رقم الجوال" name="phoneDirect" type="tel" value={employeeData.phoneDirect} onChange={handleChange} />
+                                <FormInput label="رقم الجوال" name="phone_direct" type="tel" value={employeeData.phone_direct} onChange={handleChange} />
                                 <FormInput label="البريد الإلكتروني" name="email" type="email" value={employeeData.email} onChange={handleChange} />
                             </div>
 
                             <hr className="my-4 dark:border-gray-700" />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <FormInput label="السجل المدني / الإقامة" name="nationalId" value={employeeData.nationalId || ''} onChange={handleChange} />
+                                <FormInput label="السجل المدني / الإقامة" name="national_id" value={employeeData.national_id || ''} onChange={handleChange} />
                                 <FormInput label="الجنسية" name="nationality" value={employeeData.nationality || ''} onChange={handleChange} />
                                 <div>
                                     <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -192,8 +192,8 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                                         <option value="أنثى">أنثى</option>
                                     </select>
                                 </div>
-                                <FormInput label="تاريخ الميلاد" name="dateOfBirth" type="date" value={employeeData.dateOfBirth} onChange={handleChange} />
-                                <FormInput label="رقم التصنيف" name="classificationId" value={employeeData.classificationId || ''} onChange={handleChange} />
+                                <FormInput label="تاريخ الميلاد" name="date_of_birth" type="date" value={employeeData.date_of_birth} onChange={handleChange} />
+                                <FormInput label="رقم التصنيف" name="classification_id" value={employeeData.classification_id || ''} onChange={handleChange} />
                             </div>
                         </div>
                         

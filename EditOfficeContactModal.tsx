@@ -13,18 +13,14 @@ interface EditOfficeContactModalProps {
 
 const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen, onClose, onSave, contactToEdit }) => {
     const [isClosing, setIsClosing] = useState(false);
-    const [contactData, setContactData] = useState<OfficeContact | null>(null);
+    const [contactData, setContactData] = useState<OfficeContact | null>(contactToEdit);
 
     useEffect(() => {
-        // This effect correctly handles both setting the data when a contact is provided
-        // for editing, and resetting the state to null when the modal is closed (when contactToEdit becomes null).
-        // This prevents stale data from persisting between edits.
-        if (contactToEdit) {
+        // Sync local state with the prop when the modal is opened or the contact prop changes.
+        if (isOpen && contactToEdit) {
             setContactData({ ...contactToEdit });
-        } else {
-            setContactData(null);
         }
-    }, [contactToEdit]);
+    }, [contactToEdit, isOpen]);
 
     useEffect(() => {
         if (isOpen) {
@@ -57,15 +53,7 @@ const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen,
         }
     };
 
-    // If the modal isn't supposed to be open, don't render anything.
-    if (!isOpen) {
-        return null;
-    }
-
-    // This guard prevents rendering the form with stale data or crashing if data is null.
-    // On the first render after opening, `contactData` will be null, so we render nothing.
-    // The `useEffect` then runs, sets the state, and triggers a re-render with the correct data.
-    if (!contactData) {
+    if (!isOpen || !contactData) {
         return null;
     }
 
