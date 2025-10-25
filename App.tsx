@@ -18,6 +18,7 @@ import ImportLoadingModal from './ImportLoadingModal';
 import BottomNavBar from './components/BottomNavBar';
 import OfficeDirectory from './components/OfficeDirectory';
 import EditOfficeContactModal from './EditOfficeContactModal';
+import AddOfficeContactModal from './components/AddOfficeContactModal';
 import TasksView from './components/TasksView';
 import AddTaskModal from './components/AddTaskModal';
 import TransactionsView from './components/TransactionsView';
@@ -56,6 +57,7 @@ const App: React.FC = () => {
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
     const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
     const [contactToEdit, setContactToEdit] = useState<OfficeContact | null>(null);
+    const [showAddOfficeContactModal, setShowAddOfficeContactModal] = useState(false);
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
     const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
@@ -233,7 +235,22 @@ const App: React.FC = () => {
         setContactToEdit(contact);
     };
 
-    const handleSaveOfficeContact = async (contactData: OfficeContact) => {
+    const handleOpenAddContactModal = () => {
+        setShowAddOfficeContactModal(true);
+    };
+
+    const handleAddOfficeContact = async (contactData: Omit<OfficeContact, 'id'>) => {
+        const { data, error } = await supabase.from('office_contacts').insert([contactData]).select();
+        if (error) {
+            addToast(`خطأ في إضافة المكتب: ${error.message}`, 'error');
+        } else if (data) {
+            setOfficeContacts(prev => [...prev, data[0]].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
+            addToast(`تمت إضافة مكتب "${data[0].name}" بنجاح.`, 'success');
+            setShowAddOfficeContactModal(false);
+        }
+    };
+
+    const handleUpdateOfficeContact = async (contactData: OfficeContact) => {
         const { data, error } = await supabase.from('office_contacts').update(contactData).eq('id', contactData.id).select();
         if (error) {
             addToast(`خطأ في تحديث المكتب: ${error.message}`, 'error');
@@ -542,6 +559,7 @@ const App: React.FC = () => {
                     <OfficeDirectory 
                         contacts={officeContacts} 
                         onEditContact={handleOpenEditContactModal}
+                        onAddContact={handleOpenAddContactModal}
                     />
                 )}
 
@@ -602,8 +620,13 @@ const App: React.FC = () => {
              <EditOfficeContactModal
                 isOpen={!!contactToEdit}
                 onClose={() => setContactToEdit(null)}
-                onSave={handleSaveOfficeContact}
+                onSave={handleUpdateOfficeContact}
                 contactToEdit={contactToEdit}
+            />
+            <AddOfficeContactModal
+                isOpen={showAddOfficeContactModal}
+                onClose={() => setShowAddOfficeContactModal(false)}
+                onSave={handleAddOfficeContact}
             />
             <AddTaskModal 
                 isOpen={showAddTaskModal}

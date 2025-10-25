@@ -3,14 +3,15 @@
 import React, { useState, useMemo } from 'react';
 import { OfficeContact } from '../types';
 import OfficeContactCard from './OfficeContactCard';
-import { SearchIcon } from '../icons/Icons';
+import { SearchIcon, PlusIcon } from '../icons/Icons';
 
 interface OfficeDirectoryProps {
     contacts: OfficeContact[];
     onEditContact: (contact: OfficeContact) => void;
+    onAddContact: () => void;
 }
 
-const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditContact }) => {
+const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditContact, onAddContact }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredContacts = useMemo(() => {
@@ -24,7 +25,7 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
     }, [contacts, searchTerm]);
 
     return (
-        <div className="mt-6 animate-fade-in">
+        <div className="mt-6 animate-fade-in relative pb-24">
             <div className="relative mb-6">
                 <input
                     type="text"
@@ -51,6 +52,14 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
             ) : (
                 <p className="text-center text-gray-500 mt-8">لا توجد نتائج مطابقة لبحثك.</p>
             )}
+            
+             <button
+                onClick={onAddContact}
+                className="fixed bottom-28 md:bottom-10 left-1/2 -translate-x-1/2 md:left-10 md:translate-x-0 w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 transition-transform duration-300 z-40"
+                aria-label="إضافة تحويلة جديدة"
+            >
+                <PlusIcon className="w-8 h-8" />
+            </button>
         </div>
     );
 };

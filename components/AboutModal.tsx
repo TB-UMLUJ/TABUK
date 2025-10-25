@@ -14,7 +14,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
     useEffect(() => {
         if (isOpen) {
-            fetch('./metadata.json')
+            fetch('/metadata.json')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
