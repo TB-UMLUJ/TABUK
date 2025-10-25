@@ -1,8 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
-import { Transaction, TransactionStatus, TransactionPlatform } from '../types';
+
+import React, { useState, useMemo, useRef } from 'react';
+import { Transaction } from '../types';
 import TransactionCard from './TransactionCard';
-import { PlusIcon, SearchIcon } from '../icons/Icons';
+import { SearchIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon } from '../icons/Icons';
 
 interface TransactionsViewProps {
     transactions: Transaction[];
@@ -10,51 +11,39 @@ interface TransactionsViewProps {
     onEditTransaction: (task: Transaction) => void;
     onDeleteTransaction: (transaction: Transaction) => void;
     onSelectTransaction: (transaction: Transaction) => void;
+    onImport: (file: File) => void;
+    onExport: () => void;
 }
 
-const statusOptions: { value: TransactionStatus | 'all'; label: string }[] = [
-    { value: 'all', label: 'جميع الحالات' },
-    { value: 'new', label: 'جديدة' },
-    { value: 'inProgress', label: 'قيد الإجراء' },
-    { value: 'followedUp', label: 'تمت المتابعة' },
-    { value: 'completed', label: 'منجزة' },
-];
-
-const platformOptions: { value: TransactionPlatform | 'all'; label: string }[] = [
-    { value: 'all', label: 'كل المنصات' },
-    { value: 'Bain', label: 'نظام بين' },
-    { value: 'MinisterEmail', label: 'بريد الوزير' },
-    { value: 'HospitalEmail', label: 'بريد المستشفى' },
-];
-
-
-const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAddTransaction, onEditTransaction, onDeleteTransaction, onSelectTransaction }) => {
+const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAddTransaction, onEditTransaction, onDeleteTransaction, onSelectTransaction, onImport, onExport }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'all'>('all');
-    const [platformFilter, setPlatformFilter] = useState<TransactionPlatform | 'all'>('all');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImportClick = () => fileInputRef.current?.click();
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) onImport(file);
+        if (event.target) event.target.value = '';
+    };
 
     const filteredTransactions = useMemo(() => {
         return transactions
             .filter(t => {
-                const matchesSearch = searchTerm === '' ||
+                return searchTerm === '' ||
                     t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     t.transaction_number.toLowerCase().includes(searchTerm.toLowerCase());
-                
-                const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
-                const matchesPlatform = platformFilter === 'all' || t.platform === platformFilter;
-
-                return matchesSearch && matchesStatus && matchesPlatform;
             })
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [transactions, searchTerm, statusFilter, platformFilter]);
+    }, [transactions, searchTerm]);
 
 
     return (
         <div className="mt-6 animate-fade-in relative pb-24">
             
              <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="relative md:col-span-3">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <div className="relative w-full flex-grow">
                          <input
                             type="text"
                             placeholder="ابحث برقم المعاملة أو الموضوع..."
@@ -66,20 +55,22 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
                             <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                         </div>
                     </div>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as TransactionStatus | 'all')}
-                        className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    >
-                        {statusOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
-                    <select
-                        value={platformFilter}
-                        onChange={(e) => setPlatformFilter(e.target.value as TransactionPlatform | 'all')}
-                        className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    >
-                        {platformOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        <button 
+                            onClick={onAddTransaction} 
+                            className="p-2.5 rounded-lg flex-1 md:flex-none hidden md:flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                            title="إضافة معاملة جديدة"
+                        >
+                            <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                        </button>
+                        <button onClick={handleImportClick} className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
+                            <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> استيراد
+                        </button>
+                        <button onClick={onExport} className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
+                            <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> تصدير
+                        </button>
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx, .xls" />
+                    </div>
                 </div>
             </div>
 
@@ -101,13 +92,6 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
                 </div>
             )}
 
-             <button
-                onClick={onAddTransaction}
-                className="fixed bottom-28 md:bottom-10 left-1/2 -translate-x-1/2 md:left-10 md:translate-x-0 w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 transition-transform duration-300 z-40"
-                aria-label="إضافة معاملة جديدة"
-            >
-                <PlusIcon className="w-8 h-8" />
-            </button>
         </div>
     );
 };

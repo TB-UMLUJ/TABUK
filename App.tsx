@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -32,7 +33,8 @@ declare const XLSX: any;
 const App: React.FC = () => {
     const { addToast } = useToast();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-        return sessionStorage.getItem('isAuthenticated') === 'true';
+        // Check localStorage first for persistent session, then sessionStorage
+        return localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
     });
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
     const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
@@ -47,8 +49,6 @@ const App: React.FC = () => {
 
     // UI & Filter State
     const [searchTerm, setSearchTerm] = useState('');
-    const [departmentFilter, setDepartmentFilter] = useState('all');
-    const [showFavorites, setShowFavorites] = useState(false);
     const [activeTab, setActiveTab] = useState<'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions'>('directory');
     const [isImporting, setIsImporting] = useState<boolean>(false);
     
@@ -152,28 +152,31 @@ const App: React.FC = () => {
         }
     };
 
-    const departments = useMemo(() => ['all', ...Array.from(new Set(employees.map(e => e.department)))], [employees]);
-
     const filteredEmployees = useMemo(() => {
         return employees.filter(employee => {
-            const matchesSearch = searchTerm === '' ||
-                employee.full_name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.full_name_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                employee.employee_id.toLowerCase().includes(searchTerm.toLowerCase());
-            
-            const matchesDepartment = departmentFilter === 'all' || employee.department === departmentFilter;
-            const matchesFavorites = !showFavorites || favorites.includes(employee.id);
+            if (searchTerm === '') return true;
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-            return matchesSearch && matchesDepartment && matchesFavorites;
+            return (
+                employee.full_name_ar.toLowerCase().includes(lowerCaseSearchTerm) ||
+                employee.full_name_en.toLowerCase().includes(lowerCaseSearchTerm) ||
+                employee.employee_id.toLowerCase().includes(lowerCaseSearchTerm) ||
+                (employee.national_id && employee.national_id.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                (employee.center && employee.center.toLowerCase().includes(lowerCaseSearchTerm))
+            );
         }).sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar'));
-    }, [employees, searchTerm, departmentFilter, showFavorites, favorites]);
+    }, [employees, searchTerm]);
+
 
     // --- Authentication Handlers ---
-    const handleLogin = () => {
+    const handleLogin = (rememberMe: boolean) => {
         setShowWelcome(true);
         setTimeout(() => {
-            sessionStorage.setItem('isAuthenticated', 'true');
+            if (rememberMe) {
+                localStorage.setItem('isAuthenticated', 'true');
+            } else {
+                sessionStorage.setItem('isAuthenticated', 'true');
+            }
             setIsAuthenticated(true);
             setShowWelcome(false);
         }, 4000);
@@ -181,6 +184,7 @@ const App: React.FC = () => {
 
     const handleLogout = () => {
         sessionStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('isAuthenticated');
         setIsAuthenticated(false);
     };
 
@@ -361,11 +365,15 @@ const App: React.FC = () => {
         setShowAddTransactionModal(true);
     };
 
-    // --- Import Handler ---
-    const handleImport = (file: File) => {
-        setIsImporting(true);
+    // --- Generic Excel Parser ---
+    const parseExcelFile = (
+        file: File, 
+        aliases: { [key: string]: string[] }, 
+        requiredKeys: string[],
+        callback: (data: any[], error?: string) => void
+    ) => {
         const reader = new FileReader();
-        reader.onload = async (e) => {
+        reader.onload = (e) => {
             try {
                 const data = e.target?.result;
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
@@ -374,51 +382,67 @@ const App: React.FC = () => {
                 const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" }) as any[];
 
                 if (json.length === 0) {
-                    addToast("الملف فارغ أو لا يحتوي على بيانات.", 'warning');
-                    setIsImporting(false);
+                    callback([], "الملف فارغ أو لا يحتوي على بيانات.");
                     return;
                 }
                 
                 const header = Object.keys(json[0]);
-                type EmployeeKey = keyof Employee;
-                type ColumnMap = { [key in EmployeeKey]?: string | null };
-
-                const columnMap: ColumnMap = {};
-                const aliases: { [key in keyof Omit<Employee, 'id'>]: string[] } = {
-                    employee_id: ['الرقم الوظيفي', 'employeeid', 'id', 'رقم الموظف', 'الرقم التعريفي'],
-                    full_name_ar: ['الاسم باللغة العربية', 'الاسم الكامل (عربي)', 'الاسم', 'fullnamear', 'arabic name', 'الاسم بالعربي', 'اسم الموظف'],
-                    full_name_en: ['الاسم باللغة الانجليزية', 'الاسم الكامل (انجليزي)', 'fullnameen', 'english name', 'الاسم بالانجليزي'],
-                    job_title: ['المسمى الوظيفي', 'jobtitle', 'الوظيفة', 'position', 'المنصب'],
-                    department: ['القطاع', 'القسم', 'department', 'الإدارة'],
-                    center: ['المركز', 'center'],
-                    phone_direct: ['رقم الجوال', 'الهاتف المباشر', 'phonedirect', 'mobile', 'الجوال', 'phone'],
-                    email: ['الايميل', 'البريد الإلكتروني', 'email'],
-                    national_id: ['السجل المدني / الإقامة', 'nationalid', 'السجل المدني', 'الإقامة', 'رقم الهوية'],
-                    nationality: ['الجنسية', 'nationality'],
-                    gender: ['الجنس', 'gender', 'النوع'],
-                    date_of_birth: ['تاريخ الميلاد', 'dateofbirth', 'dob'],
-                    classification_id: ['رقم التصنيف', 'classificationid']
-                };
+                const columnMap: { [key: string]: string | null } = {};
 
                 for (const key in aliases) {
-                    const typedKey = key as keyof typeof aliases;
-                    const possibleNames = aliases[typedKey];
+                    const possibleNames = aliases[key];
                     const foundHeader = header.find(h => possibleNames.some(p => h.toLowerCase().trim() === p.toLowerCase().trim()));
-                    if (foundHeader) {
-                        columnMap[typedKey] = foundHeader;
-                    }
+                    columnMap[key] = foundHeader || null;
                 }
                 
-                const requiredKeys: (keyof typeof aliases)[] = ['employee_id', 'full_name_ar', 'job_title', 'department'];
                 const missingHeaders = requiredKeys.filter(key => !columnMap[key]).map(key => aliases[key][0]);
 
                 if (missingHeaders.length > 0) {
-                    addToast(`الملف غير صالح. الأعمدة الأساسية مفقودة: ${missingHeaders.join(', ')}`, 'error');
-                    setIsImporting(false);
+                    callback([], `الملف غير صالح. الأعمدة الأساسية مفقودة: ${missingHeaders.join(', ')}`);
                     return;
                 }
+                callback(json.map(row => ({...row, _columnMap: columnMap})));
 
+            } catch (error) {
+                console.error("Error processing Excel file:", error);
+                callback([], `حدث خطأ أثناء قراءة الملف.`);
+            }
+        };
+        reader.onerror = () => {
+            callback([], 'فشل في قراءة الملف.');
+        };
+        reader.readAsArrayBuffer(file);
+    };
+    
+    // --- Employee Import/Export ---
+    const handleImportEmployees = (file: File) => {
+        setIsImporting(true);
+        const aliases = {
+            employee_id: ['الرقم الوظيفي', 'employeeid', 'id', 'رقم الموظف', 'الرقم التعريفي'],
+            full_name_ar: ['الاسم باللغة العربية', 'الاسم الكامل (عربي)', 'الاسم', 'fullnamear', 'arabic name', 'الاسم بالعربي', 'اسم الموظف'],
+            full_name_en: ['الاسم باللغة الانجليزية', 'الاسم الكامل (انجليزي)', 'fullnameen', 'english name', 'الاسم بالانجليزي'],
+            job_title: ['المسمى الوظيفي', 'jobtitle', 'الوظيفة', 'position', 'المنصب'],
+            department: ['القطاع', 'القسم', 'department', 'الإدارة'],
+            center: ['المركز', 'center'],
+            phone_direct: ['رقم الجوال', 'الهاتف المباشر', 'phonedirect', 'mobile', 'الجوال', 'phone'],
+            email: ['الايميل', 'البريد الإلكتروني', 'email'],
+            national_id: ['السجل المدني / الإقامة', 'nationalid', 'السجل المدني', 'الإقامة', 'رقم الهوية'],
+            nationality: ['الجنسية', 'nationality'],
+            gender: ['الجنس', 'gender', 'النوع'],
+            date_of_birth: ['تاريخ الميلاد', 'dateofbirth', 'dob'],
+            classification_id: ['رقم التصنيف', 'classificationid']
+        };
+
+        parseExcelFile(file, aliases, ['employee_id', 'full_name_ar', 'job_title', 'department'], async (json, error) => {
+            if (error) {
+                addToast(error, 'error');
+                setIsImporting(false);
+                return;
+            }
+            
+            try {
                 const mappedEmployees = json.map((row: any) => {
+                    const columnMap = row._columnMap;
                     const employee_id = String(row[columnMap.employee_id!] || '').trim();
                     if (!employee_id || !row[columnMap.full_name_ar!]) return null;
 
@@ -429,7 +453,6 @@ const App: React.FC = () => {
                              const parsedDate = new Date(rawDate);
                              if (!isNaN(parsedDate.getTime())) {
                                  if (typeof rawDate === 'number') {
-                                      // Handle Excel's numeric date format
                                       return new Date(Date.UTC(0, 0, rawDate - 1)).toISOString().split('T')[0];
                                  }
                                  return parsedDate.toISOString().split('T')[0];
@@ -457,57 +480,176 @@ const App: React.FC = () => {
                     };
                 }).filter(Boolean) as (Omit<Employee, 'id'> & { id?: number })[];
 
-                // --- Deduplication Logic ---
-                // Use a Map to automatically handle duplicates, keeping the last seen entry for any given employee_id.
                 const uniqueEmployeesMap = new Map<string, typeof mappedEmployees[0]>();
-                mappedEmployees.forEach(emp => {
-                    if (emp && emp.employee_id) {
-                        uniqueEmployeesMap.set(emp.employee_id, emp);
-                    }
-                });
-
+                mappedEmployees.forEach(emp => { if (emp && emp.employee_id) uniqueEmployeesMap.set(emp.employee_id, emp); });
                 const employeesToUpsert = Array.from(uniqueEmployeesMap.values());
                 const duplicatesCount = mappedEmployees.length - employeesToUpsert.length;
-
-                if (duplicatesCount > 0) {
-                    addToast(`تم العثور على ${duplicatesCount} سجل مكرر وتجاهلهم.`, 'warning');
-                }
-                // --- End Deduplication Logic ---
-
+                if (duplicatesCount > 0) addToast(`تم العثور على ${duplicatesCount} سجل مكرر وتجاهلهم.`, 'warning');
 
                 if (employeesToUpsert.length > 0) {
                     const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
-                    
-                    if (upsertError) {
-                        throw upsertError;
-                    }
+                    if (upsertError) throw upsertError;
 
                     addToast(`تمت معالجة ${employeesToUpsert.length} سجلاً بنجاح.`, 'success');
-
-                    // Refresh data from DB
                     const { data: updatedEmployees, error: fetchError } = await supabase.from('employees').select('*').order('full_name_ar');
-                    if (!fetchError && updatedEmployees) {
-                        setEmployees(updatedEmployees);
-                    }
+                    if (!fetchError && updatedEmployees) setEmployees(updatedEmployees);
                 } else {
                     addToast("لم يتم العثور على بيانات صالحة للاستيراد.", 'warning');
                 }
-
-            } catch (error) {
-                console.error("Error processing Excel file:", error);
-                const postgrestError = error as PostgrestError;
+            } catch (err) {
+                const postgrestError = err as PostgrestError;
                 addToast(`حدث خطأ أثناء معالجة الملف: ${postgrestError.message}`, 'error');
             } finally {
                 setIsImporting(false);
             }
-        };
-        reader.onerror = () => {
-            setIsImporting(false);
-            addToast('فشل في قراءة الملف.', 'error');
-        };
-        reader.readAsArrayBuffer(file);
+        });
     };
     
+    const handleExportEmployees = () => {
+        const headers = {
+            employee_id: 'الرقم الوظيفي',
+            full_name_ar: 'الاسم باللغة العربية',
+            full_name_en: 'الاسم باللغة الانجليزية',
+            job_title: 'المسمى الوظيفي',
+            department: 'القطاع',
+            center: 'المركز',
+            phone_direct: 'رقم الجوال',
+            email: 'الايميل',
+            national_id: 'السجل المدني / الإقامة',
+            nationality: 'الجنسية',
+            gender: 'الجنس',
+            date_of_birth: 'تاريخ الميلاد',
+            classification_id: 'رقم التصنيف'
+        };
+        handleExport(filteredEmployees, headers, 'دليل_الموظفين');
+    };
+
+    // --- Other sections Import/Export ---
+    const handleExport = (data: any[], headers: Record<string, string>, fileName: string) => {
+        const worksheetData = data.map(item => {
+            const row: Record<string, any> = {};
+            for (const key in headers) {
+                row[headers[key]] = item[key];
+            }
+            return row;
+        });
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+        XLSX.writeFile(workbook, `${fileName}.xlsx`);
+        addToast(`تم تصدير ${data.length} سجلاً بنجاح.`, 'success');
+    };
+
+    const handleExportOfficeContacts = () => handleExport(officeContacts, { name: 'اسم المكتب', extension: 'التحويلة', location: 'الموقع' }, 'تحويلات_المكاتب');
+    const handleExportTasks = () => handleExport(tasks.map(t => ({...t, is_completed: t.is_completed ? 'نعم' : 'لا'})), { title: 'المهمة', description: 'الوصف', due_date: 'تاريخ الاستحقاق', is_completed: 'مكتملة' }, 'المهام_والتذكيرات');
+    const handleExportTransactions = () => handleExport(transactions, { transaction_number: 'رقم المعاملة', subject: 'الموضوع', type: 'النوع', platform: 'المنصة', status: 'الحالة', date: 'التاريخ', description: 'الوصف' }, 'المعاملات');
+
+    const handleImportOfficeContacts = (file: File) => {
+        setIsImporting(true);
+        const aliases = {
+            name: ['اسم المكتب', 'الاسم', 'name'],
+            extension: ['رقم التحويلة', 'التحويلة', 'extension'],
+            location: ['الموقع', 'location']
+        };
+        parseExcelFile(file, aliases, ['name', 'extension'], async (json, error) => {
+            if (error) { addToast(error, 'error'); setIsImporting(false); return; }
+            try {
+                const contactsToUpsert = json.map(row => {
+                    const columnMap = row._columnMap;
+                    return {
+                        name: row[columnMap.name!],
+                        extension: String(row[columnMap.extension!]),
+                        location: columnMap.location ? row[columnMap.location] : undefined
+                    };
+                }).filter(c => c.name && c.extension);
+                
+                if (contactsToUpsert.length > 0) {
+                    const { error: upsertError } = await supabase.from('office_contacts').upsert(contactsToUpsert, { onConflict: 'name' });
+                    if (upsertError) throw upsertError;
+                    addToast(`تمت معالجة ${contactsToUpsert.length} سجلاً.`, 'success');
+                    const { data: updatedData } = await supabase.from('office_contacts').select('*').order('name');
+                    if (updatedData) setOfficeContacts(updatedData);
+                } else { addToast("لم يتم العثور على بيانات صالحة.", 'warning'); }
+            } catch (err) { addToast(`خطأ: ${(err as PostgrestError).message}`, 'error');
+            } finally { setIsImporting(false); }
+        });
+    };
+
+    const handleImportTasks = (file: File) => {
+        setIsImporting(true);
+        const aliases = {
+            title: ['العنوان', 'المهمة', 'title'],
+            description: ['الوصف', 'التفاصيل', 'description'],
+            due_date: ['تاريخ الاستحقاق', 'التاريخ', 'duedate', 'due_date'],
+            is_completed: ['مكتملة', 'الحالة', 'iscompleted', 'is_completed']
+        };
+        parseExcelFile(file, aliases, ['title'], async (json, error) => {
+            if (error) { addToast(error, 'error'); setIsImporting(false); return; }
+            try {
+                 const tasksToUpsert = json.map(row => {
+                    const columnMap = row._columnMap;
+                    const isCompletedRaw = columnMap.is_completed ? String(row[columnMap.is_completed]).toLowerCase() : 'false';
+                    const isCompleted = ['true', 'yes', 'نعم', '1'].includes(isCompletedRaw);
+                    return {
+                        title: row[columnMap.title!],
+                        description: columnMap.description ? row[columnMap.description] : undefined,
+                        due_date: columnMap.due_date && row[columnMap.due_date] ? new Date(row[columnMap.due_date]).toISOString().split('T')[0] : undefined,
+                        is_completed: isCompleted
+                    };
+                }).filter(t => t.title);
+
+                if (tasksToUpsert.length > 0) {
+                    const { error: upsertError } = await supabase.from('tasks').upsert(tasksToUpsert, { onConflict: 'title' });
+                    if (upsertError) throw upsertError;
+                    addToast(`تمت معالجة ${tasksToUpsert.length} سجلاً.`, 'success');
+                    const { data: updatedData } = await supabase.from('tasks').select('*').order('due_date');
+                    if (updatedData) setTasks(updatedData);
+                } else { addToast("لم يتم العثور على بيانات صالحة.", 'warning'); }
+            } catch (err) { addToast(`خطأ: ${(err as PostgrestError).message}`, 'error');
+            } finally { setIsImporting(false); }
+        });
+    };
+
+    const handleImportTransactions = (file: File) => {
+        setIsImporting(true);
+        const aliases = {
+            transaction_number: ['رقم المعاملة', 'الرقم', 'transactionnumber', 'transaction_number'],
+            subject: ['الموضوع', 'subject'],
+            type: ['النوع', 'type'],
+            platform: ['المنصة', 'platform'],
+            status: ['الحالة', 'status'],
+            date: ['التاريخ', 'date'],
+            description: ['الوصف', 'ملاحظات', 'description']
+        };
+        parseExcelFile(file, aliases, ['transaction_number', 'subject', 'date'], async (json, error) => {
+            if (error) { addToast(error, 'error'); setIsImporting(false); return; }
+             try {
+                const transactionsToUpsert = json.map(row => {
+                    const columnMap = row._columnMap;
+                    return {
+                        transaction_number: String(row[columnMap.transaction_number!]),
+                        subject: row[columnMap.subject!],
+                        date: new Date(row[columnMap.date!]).toISOString().split('T')[0],
+                        type: columnMap.type ? row[columnMap.type] : 'incoming',
+                        platform: columnMap.platform ? row[columnMap.platform] : 'Bain',
+                        status: columnMap.status ? row[columnMap.status] : 'new',
+                        description: columnMap.description ? row[columnMap.description] : undefined,
+                    };
+                }).filter(t => t.transaction_number && t.subject && t.date);
+
+                if (transactionsToUpsert.length > 0) {
+                    const { error: upsertError } = await supabase.from('transactions').upsert(transactionsToUpsert, { onConflict: 'transaction_number' });
+                    if (upsertError) throw upsertError;
+                    addToast(`تمت معالجة ${transactionsToUpsert.length} سجلاً.`, 'success');
+                    const { data: updatedData } = await supabase.from('transactions').select('*').order('date', {ascending: false});
+                    if (updatedData) setTransactions(updatedData);
+                } else { addToast("لم يتم العثور على بيانات صالحة.", 'warning'); }
+            } catch (err) { addToast(`خطأ: ${(err as PostgrestError).message}`, 'error');
+            } finally { setIsImporting(false); }
+        });
+    };
+
+
     if (showWelcome) return <WelcomeScreen />;
     if (!isAuthenticated) return <LoginScreen onLogin={handleLogin} />;
     
@@ -537,14 +679,9 @@ const App: React.FC = () => {
                             ref={searchAndFilterRef}
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
-                            departmentFilter={departmentFilter}
-                            setDepartmentFilter={setDepartmentFilter}
-                            showFavorites={showFavorites}
-                            setShowFavorites={setShowFavorites}
-                            departments={departments}
-                            favoritesCount={favorites.length}
-                            onImport={handleImport}
+                            onImport={handleImportEmployees}
                             onAddEmployeeClick={handleOpenAddModal}
+                            onExport={handleExportEmployees}
                         />
                         <EmployeeList 
                             employees={filteredEmployees} 
@@ -560,6 +697,8 @@ const App: React.FC = () => {
                         contacts={officeContacts} 
                         onEditContact={handleOpenEditContactModal}
                         onAddContact={handleOpenAddContactModal}
+                        onImport={handleImportOfficeContacts}
+                        onExport={handleExportOfficeContacts}
                     />
                 )}
 
@@ -570,6 +709,8 @@ const App: React.FC = () => {
                         onEditTask={handleOpenEditTaskModal}
                         onDeleteTask={handleDeleteTask}
                         onToggleComplete={handleToggleTaskCompletion}
+                        onImport={handleImportTasks}
+                        onExport={handleExportTasks}
                     />
                 )}
 
@@ -580,6 +721,8 @@ const App: React.FC = () => {
                         onEditTransaction={handleOpenEditTransactionModal}
                         onDeleteTransaction={handleDeleteTransaction}
                         onSelectTransaction={setSelectedTransaction}
+                        onImport={handleImportTransactions}
+                        onExport={handleExportTransactions}
                     />
                 )}
 
@@ -590,13 +733,16 @@ const App: React.FC = () => {
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
                 onAddEmployeeClick={handleOpenAddModal}
+                onAddOfficeContactClick={handleOpenAddContactModal}
+                onAddTaskClick={handleOpenAddTaskModal}
+                onAddTransactionClick={handleOpenAddTransactionModal}
             />
             
             {/* --- Modals --- */}
             <ConfirmationModal
                 isOpen={confirmation.isOpen}
                 onClose={closeConfirmation}
-                onConfirm={confirmation.onConfirm}
+                onConfirm={() => { confirmation.onConfirm(); closeConfirmation(); }}
                 title={confirmation.title}
                 message={confirmation.message}
             />

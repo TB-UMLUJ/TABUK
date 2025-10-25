@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onOpenAbout }) => {
                 <div className="flex items-center gap-4">
                     <img src={tabukHealthClusterLogo} alt="Logo" className="h-12 w-auto"/>
                     <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-primary dark:text-white">دليل تجمع تبوك الصحي</h1>
+                        <h1 className="text-lg md:text-2xl font-bold text-primary dark:text-white">تجمع تبوك الصحي</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

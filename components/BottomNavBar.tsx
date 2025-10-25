@@ -9,9 +9,19 @@ interface BottomNavBarProps {
     activeTab: TabId;
     setActiveTab: (tab: TabId) => void;
     onAddEmployeeClick: () => void;
+    onAddOfficeContactClick: () => void;
+    onAddTaskClick: () => void;
+    onAddTransactionClick: () => void;
 }
 
-const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab, onAddEmployeeClick }) => {
+const BottomNavBar: React.FC<BottomNavBarProps> = ({ 
+    activeTab, 
+    setActiveTab, 
+    onAddEmployeeClick,
+    onAddOfficeContactClick,
+    onAddTaskClick,
+    onAddTransactionClick 
+}) => {
 
     const NavButton: React.FC<{
         label: string;
@@ -28,6 +38,16 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab, on
             <span className="text-xs font-medium">{label}</span>
         </button>
     );
+    
+    const fabActions: { [key in TabId]?: { icon: React.ElementType; onClick: () => void; label: string } } = {
+        directory: { icon: UserPlusIcon, onClick: onAddEmployeeClick, label: 'إضافة موظف' },
+        officeDirectory: { icon: PhoneIcon, onClick: onAddOfficeContactClick, label: 'إضافة تحويلة' },
+        tasks: { icon: ClipboardDocumentCheckIcon, onClick: onAddTaskClick, label: 'إضافة مهمة' },
+        transactions: { icon: DocumentDuplicateIcon, onClick: onAddTransactionClick, label: 'إضافة معاملة' },
+    };
+
+    const currentFabAction = fabActions[activeTab];
+
 
     return (
         <div className="md:hidden fixed bottom-4 inset-x-4 h-20 z-50 pointer-events-none">
@@ -45,13 +65,15 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab, on
                     isActive={activeTab === 'officeDirectory'}
                 />
                 <div className="flex justify-center items-center">
-                     <button
-                        onClick={onAddEmployeeClick}
-                        className="w-16 h-16 -mt-6 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 hover:rotate-90 transition-all duration-300"
-                        aria-label="إضافة موظف جديد"
-                    >
-                        <UserPlusIcon className="w-8 h-8" />
-                    </button>
+                    {currentFabAction && (
+                        <button
+                            onClick={currentFabAction.onClick}
+                            className="w-16 h-16 -mt-6 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 hover:rotate-90 transition-all duration-300"
+                            aria-label={currentFabAction.label}
+                        >
+                            <currentFabAction.icon className="w-8 h-8" />
+                        </button>
+                    )}
                 </div>
                 <NavButton
                     label="المهام"

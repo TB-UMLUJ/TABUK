@@ -1,18 +1,14 @@
 
+
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
-import { StarIcon, SearchIcon, ArrowUpTrayIcon, UserPlusIcon } from '../icons/Icons';
+import { SearchIcon, ArrowUpTrayIcon, UserPlusIcon, ArrowDownTrayIcon } from '../icons/Icons';
 
 interface SearchAndFilterProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    departmentFilter: string;
-    setDepartmentFilter: (dep: string) => void;
-    showFavorites: boolean;
-    setShowFavorites: (show: boolean) => void;
-    departments: string[];
-    favoritesCount: number;
     onImport: (file: File) => void;
     onAddEmployeeClick: () => void;
+    onExport: () => void;
 }
 
 export interface SearchAndFilterRef {
@@ -22,14 +18,9 @@ export interface SearchAndFilterRef {
 const SearchAndFilter = forwardRef<SearchAndFilterRef, SearchAndFilterProps>(({
     searchTerm,
     setSearchTerm,
-    departmentFilter,
-    setDepartmentFilter,
-    showFavorites,
-    setShowFavorites,
-    departments,
-    favoritesCount,
     onImport,
-    onAddEmployeeClick
+    onAddEmployeeClick,
+    onExport
 }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +40,6 @@ const SearchAndFilter = forwardRef<SearchAndFilterRef, SearchAndFilterProps>(({
         if (file) {
             onImport(file);
         }
-        // Reset file input to allow importing the same file again
         if(event.target) {
             event.target.value = '';
         }
@@ -57,12 +47,12 @@ const SearchAndFilter = forwardRef<SearchAndFilterRef, SearchAndFilterProps>(({
     
     return (
         <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 mt-6 dark:bg-gray-800 dark:border-gray-700">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-center">
-                <div className="relative sm:col-span-2 md:col-span-2">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative w-full flex-grow">
                     <input
                         ref={searchInputRef}
                         type="text"
-                        placeholder="ابحث بالاسم, المسمى الوظيفي..."
+                        placeholder="ابحث بالاسم، الرقم الوظيفي، السجل، أو المركز..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
@@ -71,51 +61,40 @@ const SearchAndFilter = forwardRef<SearchAndFilterRef, SearchAndFilterProps>(({
                          <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
                 </div>
-                <select
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="p-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white hover:border-primary dark:hover:border-primary-light transition-colors"
-                >
-                    {departments.map(dep => (
-                        <option key={dep} value={dep}>{dep === 'all' ? 'جميع القطاعات' : dep}</option>
-                    ))}
-                </select>
-                <button
-                    onClick={() => setShowFavorites(!showFavorites)}
-                    className={`p-2.5 rounded-lg flex items-center justify-center transition-all duration-200 font-semibold transform hover:-translate-y-0.5 ${
-                        showFavorites ? 'bg-favorite text-black shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                    }`}
-                >
-                    <StarIcon className={`h-5 w-5 ml-2 ${showFavorites ? 'text-black' : 'text-favorite'}`} />
-                    المفضلة ({favoritesCount})
-                </button>
-                 <button
-                    onClick={onAddEmployeeClick}
-                    className="p-2.5 rounded-lg hidden md:flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
-                    title="إضافة موظف جديد"
-                >
-                    <UserPlusIcon className="h-5 w-5 ml-2" />
-                    إضافة
-                </button>
-                 <button
-                    onClick={handleImportClick}
-                    className="p-2.5 rounded-lg flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5"
-                    title="استيراد الموظفين من ملف Excel"
-                >
-                    <ArrowUpTrayIcon className="h-5 w-5 ml-2" />
-                    استيراد
-                </button>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept=".xlsx, .xls"
-                />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <button
+                        onClick={onAddEmployeeClick}
+                        className="p-2.5 rounded-lg flex-1 md:flex-none hidden md:flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                        title="إضافة موظف جديد"
+                    >
+                        <UserPlusIcon className="h-5 w-5 ml-2" />
+                        إضافة
+                    </button>
+                    <button
+                        onClick={handleImportClick}
+                        className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5"
+                        title="استيراد الموظفين من ملف Excel"
+                    >
+                        <ArrowUpTrayIcon className="h-5 w-5 ml-2" />
+                        استيراد
+                    </button>
+                     <button
+                        onClick={onExport}
+                        className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5"
+                        title="تصدير النتائج الحالية"
+                    >
+                        <ArrowDownTrayIcon className="h-5 w-5 ml-2" />
+                        تصدير
+                    </button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".xlsx, .xls"
+                    />
+                </div>
             </div>
-            <p className="text-xs text-gray-500 mt-3 text-center md:text-right dark:text-gray-400">
-                <span className="font-bold">للاستيراد:</span> يجب أن يتضمن الملف على الأقل الأعمدة التالية: الرقم الوظيفي, الاسم باللغة العربية, المسمى الوظيفي, القطاع.
-            </p>
         </div>
     );
 });

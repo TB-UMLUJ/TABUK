@@ -6,19 +6,20 @@ import { tabukHealthClusterLogo } from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 interface LoginScreenProps {
-    onLogin: () => void;
+    onLogin: (rememberMe: boolean) => void;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Hardcoded credentials for demonstration
         if (username === 'admin' && password === '1234') {
-            onLogin();
+            onLogin(rememberMe);
         } else {
             setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
             setPassword('');
@@ -74,6 +75,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                                     className="w-full pr-10 pl-4 py-3 bg-gray-100 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition text-gray-900 dark:bg-gray-700 dark:text-white dark:focus:bg-gray-900"
                                     required
                                 />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <input
+                                    id="remember-me"
+                                    name="remember-me"
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                />
+                                <label htmlFor="remember-me" className="ml-2 mr-2 block text-sm text-gray-900 dark:text-gray-300">
+                                    تذكرني
+                                </label>
                             </div>
                         </div>
 
