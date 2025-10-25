@@ -1,0 +1,21 @@
+{
+  "short_name": "دليل تبوك",
+  "name": "دليل تجمع تبوك الصحي",
+  "description": "منصة مركزية ذكية وسهلة الاستخدام للوصول السريع والفعّال إلى بيانات منسوبي تجمع تبوك الصحي.",
+  "icons": [
+    {
+      "src": "https://f.top4top.io/p_3585tysng1.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://f.top4top.io/p_3585tysng1.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#007A4D",
+  "background_color": "#ffffff"
+}
