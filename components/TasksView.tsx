@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Task } from '../types';
 import TaskCard from './TaskCard';
@@ -7,7 +8,7 @@ interface TasksViewProps {
     tasks: Task[];
     onAddTask: () => void;
     onEditTask: (task: Task) => void;
-    onDeleteTask: (taskId: number) => void;
+    onDeleteTask: (task: Task) => void;
     onToggleComplete: (taskId: number) => void;
 }
 
@@ -26,7 +27,7 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
                     task={task}
                     onToggleComplete={() => onToggleComplete(task.id)}
                     onEdit={() => onEditTask(task)}
-                    onDelete={() => onDeleteTask(task.id)}
+                    onDelete={() => onDeleteTask(task)}
                 />
             ))}
         </div>

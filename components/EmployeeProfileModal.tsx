@@ -9,7 +9,7 @@ interface EmployeeProfileModalProps {
     employee: Employee | null;
     onClose: () => void;
     onEdit: (employee: Employee) => void;
-    onDelete: (employeeId: number) => void;
+    onDelete: (employee: Employee) => void;
 }
 
 const getInitials = (name: string) => {
@@ -60,12 +60,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
     
     const handleDelete = () => {
         if (employee) {
-            if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا الموظف؟ لا يمكن التراجع عن هذا الإجراء.')) {
-                setIsClosing(true); // Start closing animation
-                setTimeout(() => {
-                    onDelete(employee.id); // This will delete and close the modal from App.tsx
-                }, 300); // Wait for animation to finish
-            }
+            onDelete(employee);
         }
     };
 

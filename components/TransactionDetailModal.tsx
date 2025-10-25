@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Transaction, TransactionStatus, TransactionPlatform, Attachment, TransactionType } from '../types';
@@ -8,7 +9,7 @@ interface TransactionDetailModalProps {
     transaction: Transaction | null;
     onClose: () => void;
     onEdit: (transaction: Transaction) => void;
-    onDelete: (transactionId: number) => void;
+    onDelete: (transaction: Transaction) => void;
 }
 
 const statusMap: Record<TransactionStatus, { text: string; className: string }> = {
@@ -54,12 +55,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
     
     const handleDelete = () => {
         if (transaction) {
-            if (window.confirm('هل أنت متأكد من رغبتك في حذف هذه المعاملة؟ لا يمكن التراجع عن هذا الإجراء.')) {
-                setIsClosing(true);
-                setTimeout(() => {
-                    onDelete(transaction.id);
-                }, 300);
-            }
+            onDelete(transaction);
         }
     };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionStatus, TransactionPlatform } from '../types';
 import TransactionCard from './TransactionCard';
@@ -7,7 +8,7 @@ interface TransactionsViewProps {
     transactions: Transaction[];
     onAddTransaction: () => void;
     onEditTransaction: (task: Transaction) => void;
-    onDeleteTransaction: (taskId: number) => void;
+    onDeleteTransaction: (transaction: Transaction) => void;
     onSelectTransaction: (transaction: Transaction) => void;
 }
 
@@ -90,7 +91,7 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
                             transaction={transaction}
                             onSelect={() => onSelectTransaction(transaction)}
                             onEdit={(e) => { e.stopPropagation(); onEditTransaction(transaction); }}
-                            onDelete={(e) => { e.stopPropagation(); onDeleteTransaction(transaction.id); }}
+                            onDelete={(e) => { e.stopPropagation(); onDeleteTransaction(transaction); }}
                         />
                     ))}
                 </div>

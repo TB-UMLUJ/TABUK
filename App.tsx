@@ -23,6 +23,7 @@ import AddTaskModal from './components/AddTaskModal';
 import TransactionsView from './components/TransactionsView';
 import AddTransactionModal from './components/AddTransactionModal';
 import TransactionDetailModal from './components/TransactionDetailModal';
+import ConfirmationModal from './components/ConfirmationModal';
 
 
 declare const XLSX: any;
@@ -60,8 +61,28 @@ const App: React.FC = () => {
     const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [confirmation, setConfirmation] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
     
     const searchAndFilterRef = useRef<SearchAndFilterRef>(null);
+
+    const requestConfirmation = (title: string, message: string, onConfirm: () => void) => {
+        setConfirmation({ isOpen: true, title, message, onConfirm });
+    };
+
+    const closeConfirmation = () => {
+        setConfirmation({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+    };
+
 
     // --- Data Fetching from Supabase ---
     useEffect(() => {
@@ -190,16 +211,22 @@ const App: React.FC = () => {
         setShowAddEmployeeModal(true);
     };
 
-    const handleDeleteEmployee = useCallback(async (employeeId: number) => {
-        const { error } = await supabase.from('employees').delete().eq('id', employeeId);
-        if (error) {
-            addToast(`خطأ في حذف الموظف: ${error.message}`, 'error');
-        } else {
-            setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
-            setSelectedEmployee(null);
-            addToast('تم حذف الموظف بنجاح.', 'success');
-        }
-    }, [addToast]);
+    const handleDeleteEmployee = async (employee: Employee) => {
+        requestConfirmation(
+            `حذف الموظف: ${employee.full_name_ar}`,
+            'هل أنت متأكد من رغبتك في حذف هذا الموظف؟ لا يمكن التراجع عن هذا الإجراء.',
+            async () => {
+                const { error } = await supabase.from('employees').delete().eq('id', employee.id);
+                if (error) {
+                    addToast(`خطأ في حذف الموظف: ${error.message}`, 'error');
+                } else {
+                    setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
+                    setSelectedEmployee(null);
+                    addToast('تم حذف الموظف بنجاح.', 'success');
+                }
+            }
+        );
+    };
 
     // --- Office Contact Handlers ---
     const handleOpenEditContactModal = (contact: OfficeContact) => {
@@ -234,14 +261,20 @@ const App: React.FC = () => {
         }
     };
 
-    const handleDeleteTask = async (taskId: number) => {
-        const { error } = await supabase.from('tasks').delete().eq('id', taskId);
-        if (error) {
-            addToast(`خطأ في حذف المهمة: ${error.message}`, 'error');
-        } else {
-            setTasks(prev => prev.filter(t => t.id !== taskId));
-            addToast('تم حذف المهمة.', 'success');
-        }
+    const handleDeleteTask = async (task: Task) => {
+        requestConfirmation(
+            `حذف المهمة: "${task.title}"`,
+            'هل أنت متأكد من رغبتك في حذف هذه المهمة؟',
+            async () => {
+                const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+                if (error) {
+                    addToast(`خطأ في حذف المهمة: ${error.message}`, 'error');
+                } else {
+                    setTasks(prev => prev.filter(t => t.id !== task.id));
+                    addToast('تم حذف المهمة.', 'success');
+                }
+            }
+        );
     };
 
     const handleToggleTaskCompletion = async (taskId: number) => {
@@ -283,15 +316,21 @@ const App: React.FC = () => {
         }
     };
 
-    const handleDeleteTransaction = async (transactionId: number) => {
-        const { error } = await supabase.from('transactions').delete().eq('id', transactionId);
-        if(error) {
-            addToast(`خطأ في حذف المعاملة: ${error.message}`, 'error');
-        } else {
-            setTransactions(prev => prev.filter(t => t.id !== transactionId));
-            setSelectedTransaction(null);
-            addToast('تم حذف المعاملة.', 'success');
-        }
+    const handleDeleteTransaction = async (transaction: Transaction) => {
+        requestConfirmation(
+            `حذف المعاملة: "${transaction.transaction_number}"`,
+            'هل أنت متأكد من رغبتك في حذف هذه المعاملة؟',
+            async () => {
+                const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
+                if(error) {
+                    addToast(`خطأ في حذف المعاملة: ${error.message}`, 'error');
+                } else {
+                    setTransactions(prev => prev.filter(t => t.id !== transaction.id));
+                    setSelectedTransaction(null);
+                    addToast('تم حذف المعاملة.', 'success');
+                }
+            }
+        );
     };
 
     const handleOpenAddTransactionModal = () => {
@@ -536,6 +575,13 @@ const App: React.FC = () => {
             />
             
             {/* --- Modals --- */}
+            <ConfirmationModal
+                isOpen={confirmation.isOpen}
+                onClose={closeConfirmation}
+                onConfirm={confirmation.onConfirm}
+                title={confirmation.title}
+                message={confirmation.message}
+            />
             <EmployeeProfileModal 
                 isOpen={!!selectedEmployee}
                 employee={selectedEmployee} 
