@@ -105,7 +105,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     </form>
                 </div>
                 <p className="text-center text-gray-500 text-sm mt-6 dark:text-gray-400">
-                    “بيانات دقيقة.. تواصل أسرع 🌿”
+                    🌿 بيانات دقيقة.. تواصل أسرع 🌿
                 </p>
                  <p className="text-center text-gray-400 text-xs mt-6 dark:text-gray-500">
                     &copy; {new Date().getFullYear()} تجمع تبوك الصحي. جميع الحقوق محفوظة.
