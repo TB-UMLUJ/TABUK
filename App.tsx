@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -363,7 +362,7 @@ const App: React.FC = () => {
                     return;
                 }
 
-                const employeesToUpsert = json.map((row: any) => {
+                const mappedEmployees = json.map((row: any) => {
                     const employee_id = String(row[columnMap.employee_id!] || '').trim();
                     if (!employee_id || !row[columnMap.full_name_ar!]) return null;
 
@@ -400,7 +399,25 @@ const App: React.FC = () => {
                         date_of_birth: dobISO,
                         classification_id: columnMap.classification_id ? String(row[columnMap.classification_id] || '') : undefined,
                     };
-                }).filter(Boolean); // Filter out null (invalid) rows
+                }).filter(Boolean) as (Omit<Employee, 'id'> & { id?: number })[];
+
+                // --- Deduplication Logic ---
+                // Use a Map to automatically handle duplicates, keeping the last seen entry for any given employee_id.
+                const uniqueEmployeesMap = new Map<string, typeof mappedEmployees[0]>();
+                mappedEmployees.forEach(emp => {
+                    if (emp && emp.employee_id) {
+                        uniqueEmployeesMap.set(emp.employee_id, emp);
+                    }
+                });
+
+                const employeesToUpsert = Array.from(uniqueEmployeesMap.values());
+                const duplicatesCount = mappedEmployees.length - employeesToUpsert.length;
+
+                if (duplicatesCount > 0) {
+                    addToast(`تم العثور على ${duplicatesCount} سجل مكرر وتجاهلهم.`, 'warning');
+                }
+                // --- End Deduplication Logic ---
+
 
                 if (employeesToUpsert.length > 0) {
                     const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
