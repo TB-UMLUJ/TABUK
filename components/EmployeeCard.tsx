@@ -86,7 +86,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect, isFavor
             </div>
             <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-white truncate" title={employee.full_name_ar}>{employee.full_name_ar}</h3>
-                <p className="text-xs sm:text-sm text-primary font-semibold dark:text-primary-light truncate" title={employee.job_title}>{employee.job_title}</p>
+                <p className="mt-1 text-xs font-semibold inline-block py-1 px-2.5 rounded-full bg-accent-light text-accent-dark dark:bg-accent/20 dark:text-accent-light truncate" title={employee.job_title}>{employee.job_title}</p>
                 <div className="text-xs text-gray-500 mt-2 flex items-start gap-4 dark:text-gray-400">
                     {/* Column 1: Department & Center */}
                     <div className="flex flex-col gap-1 min-w-0">
