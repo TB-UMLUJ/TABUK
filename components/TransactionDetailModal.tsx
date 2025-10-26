@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Transaction, TransactionStatus, TransactionPlatform, Attachment, TransactionType } from '../types';
@@ -80,7 +79,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
         return (
             <div className="py-3">
                 <p className="text-sm text-gray-500 font-medium dark:text-gray-400">{label}</p>
-                {value && <p className="text-md font-semibold text-gray-800 dark:text-white break-words">{value}</p>}
+                {value && <p className="text-base font-semibold text-gray-800 dark:text-white break-words">{value}</p>}
                 {children}
             </div>
         );
@@ -106,7 +105,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
                             <DocumentDuplicateIcon className="w-8 h-8"/>
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-2xl font-bold text-primary dark:text-white">{transaction.subject}</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-primary dark:text-white">{transaction.subject}</h2>
                              <div className="flex flex-wrap items-center gap-2 mt-2">
                                 <span className={`text-sm font-bold px-3 py-1 rounded-full ${statusInfo.className}`}>{statusInfo.text}</span>
                                 <span className="text-sm font-semibold text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">{typeMap[transaction.type]}</span>
@@ -124,7 +123,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
                                     <ArrowDownTrayIcon className="w-5 h-5"/>
                                     <span>تحميل: {transaction.attachment.name}</span>
                                 </button>
-                            ) : <span className="text-md font-semibold text-gray-400 dark:text-gray-500">لا يوجد</span>}
+                            ) : <span className="text-base font-semibold text-gray-400 dark:text-gray-500">لا يوجد</span>}
                         </InfoRow>
                         <div className="md:col-span-2">
                             <InfoRow label="ملاحظات" value={transaction.description} />

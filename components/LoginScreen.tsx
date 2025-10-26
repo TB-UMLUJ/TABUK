@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { UserIcon, KeyIcon } from '../icons/Icons';
 import { tabukHealthClusterLogo } from './Logo';
@@ -39,8 +37,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 />
                 <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 dark:bg-gray-800">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-primary dark:text-white">أهلاً بك</h1>
-                        <p className="text-gray-500 mt-2 dark:text-gray-400">سجل الدخول للوصول إلى دليل الموظفين</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-white">أهلاً بك</h1>
+                        <p className="text-sm sm:text-base text-gray-500 mt-2 dark:text-gray-400">سجل الدخول للوصول إلى دليل الموظفين</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>

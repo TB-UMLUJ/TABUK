@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Employee } from '../types';
@@ -78,7 +77,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                 <div className="bg-accent-light p-2.5 rounded-lg text-accent-dark mt-1 dark:bg-primary/20 dark:text-primary-light">{icon}</div>
                 <div>
                     <p className="text-sm text-gray-500 font-medium dark:text-gray-400">{label}</p>
-                    <p className="text-md font-bold text-gray-800 dark:text-white break-all">{valueContent}</p>
+                    <p className="text-base font-bold text-gray-800 dark:text-white break-all">{valueContent}</p>
                 </div>
             </div>
         );
@@ -113,16 +112,16 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                        <CloseIcon className="w-6 h-6" />
                     </button>
 
-                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 mb-6">
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 mb-6">
                         <div className="text-center flex-shrink-0">
                              <div className="w-32 h-32 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center mx-auto border-4 border-gray-200 dark:border-gray-600 dark:bg-gray-700">
                                 <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar)}</span>
                             </div>
                         </div>
                         <div className="flex-1 text-center md:text-right w-full">
-                            <h2 className="text-3xl font-bold text-primary dark:text-white">{employee.full_name_ar}</h2>
-                            <p className="text-lg text-accent-dark font-semibold dark:text-accent-light">{employee.job_title}</p>
-                            <p className="text-md text-gray-400 dark:text-gray-500">{employee.full_name_en}</p>
+                            <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-white">{employee.full_name_ar}</h2>
+                            <p className="text-base md:text-lg text-accent-dark font-semibold dark:text-accent-light">{employee.job_title}</p>
+                            <p className="text-sm md:text-base text-gray-400 dark:text-gray-500">{employee.full_name_en}</p>
                             
                             <div className="mt-6 flex items-center justify-center md:justify-end gap-2">
                                 <button

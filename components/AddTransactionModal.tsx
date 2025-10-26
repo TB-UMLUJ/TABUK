@@ -79,6 +79,10 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
     };
     
     const removeAttachment = () => {
+        const fileInput = document.getElementById('attachment-file') as HTMLInputElement;
+        if(fileInput) {
+            fileInput.value = '';
+        }
         setTransactionData(prev => ({...prev, attachment: undefined}));
     }
 
@@ -166,15 +170,21 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
                             <textarea id="description" name="description" rows={3} value={transactionData.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
 
-                         <div>
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المرفقات (اختياري)</label>
                             {transactionData.attachment ? (
-                                <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
-                                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{transactionData.attachment.name}</span>
-                                    <button type="button" onClick={removeAttachment} className="text-danger font-bold text-sm hover:underline">إزالة</button>
+                                <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2.5 rounded-lg">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1" dir="ltr">{transactionData.attachment.name}</p>
+                                    <button type="button" onClick={removeAttachment} className="text-danger font-bold text-sm hover:underline mr-3 flex-shrink-0">إزالة</button>
                                 </div>
                             ) : (
-                                <input type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-primary/20 dark:file:text-primary-light dark:hover:file:bg-primary/30"/>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <label htmlFor="attachment-file" className="cursor-pointer bg-primary/10 text-primary font-semibold py-2 px-4 rounded-lg hover:bg-primary/20 transition-all duration-200 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 whitespace-nowrap">
+                                        اختر ملف
+                                    </label>
+                                    <input type="file" id="attachment-file" onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" className="hidden" />
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">لم يتم اختيار ملف</span>
+                                </div>
                             )}
                         </div>
 

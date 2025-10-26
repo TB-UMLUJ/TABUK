@@ -11,11 +11,11 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLogout, onOpenAbout }) => {
     return (
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700">
-            <div className="container mx-auto px-4 py-4 md:px-6 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <img src={tabukHealthClusterLogo} alt="Logo" className="h-12 w-auto"/>
-                    <div>
-                        <h1 className="text-lg md:text-2xl font-bold text-primary dark:text-white">تجمع تبوك الصحي</h1>
+            <div className="container mx-auto px-4 py-3 md:px-6 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    <img src={tabukHealthClusterLogo} alt="Logo" className="h-10 sm:h-12 w-auto"/>
+                    <div className="min-w-0">
+                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-primary dark:text-white truncate">تجمع تبوك الصحي</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

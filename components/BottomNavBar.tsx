@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { BookOpenIcon, ChartPieIcon, UserPlusIcon, ClipboardDocumentCheckIcon, PhoneIcon, DocumentDuplicateIcon } from '../icons/Icons';
 
@@ -50,7 +48,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
 
     return (
-        <div className="md:hidden fixed bottom-4 inset-x-4 h-20 z-50 pointer-events-none">
+        <div className="md:hidden fixed bottom-4 inset-x-4 h-16 z-50 pointer-events-none">
             <div className="grid grid-cols-5 h-full max-w-lg mx-auto bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/80 dark:bg-gray-800/80 dark:border-gray-700/50 pointer-events-auto">
                 <NavButton
                     label="الدليل"
@@ -68,10 +66,10 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                     {currentFabAction && (
                         <button
                             onClick={currentFabAction.onClick}
-                            className="w-16 h-16 -mt-6 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 hover:rotate-90 transition-all duration-300"
+                            className="w-14 h-14 -mt-5 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transform hover:scale-110 hover:rotate-90 transition-all duration-300"
                             aria-label={currentFabAction.label}
                         >
-                            <currentFabAction.icon className="w-8 h-8" />
+                            <currentFabAction.icon className="w-7 h-7" />
                         </button>
                     )}
                 </div>

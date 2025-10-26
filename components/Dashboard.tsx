@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Employee } from '../types';
 import { UserGroupIcon, BuildingOfficeIcon } from '../icons/Icons';
@@ -16,7 +15,7 @@ const BarChart: React.FC<{ data: { label: string; value: number }[]; color: stri
         <div className="space-y-2">
             {data.slice(0, 7).map(item => (
                 <div key={item.label} className="flex items-center gap-2 text-sm">
-                    <span className="w-28 text-gray-600 truncate text-right dark:text-gray-400">{item.label}</span>
+                    <span className="w-24 sm:w-28 text-xs sm:text-sm text-gray-600 truncate text-right dark:text-gray-400">{item.label}</span>
                     <div className="flex-1 bg-gray-200 rounded-full h-5 dark:bg-gray-700">
                         <div
                             className="h-5 rounded-full text-white text-xs flex items-center justify-end pr-2"
@@ -52,7 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-center gap-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="bg-primary-light p-4 rounded-full dark:bg-primary/20">{icon}</div>
             <div>
-                <p className="text-3xl font-bold text-gray-800 dark:text-white">{value}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{value}</p>
                 <p className="text-gray-500 font-medium dark:text-gray-400">{title}</p>
             </div>
         </div>

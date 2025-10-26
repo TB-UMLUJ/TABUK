@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { tabukHealthClusterLogo } from './Logo';
 import { ArrowPathIcon, CheckCircleIcon } from '../icons/Icons';
@@ -82,7 +78,7 @@ const WelcomeScreen: React.FC = () => {
                     alt="شعار تجمع تبوك الصحي"
                     className="w-40 h-auto mx-auto mb-10"
                 />
-                <h1 className="text-4xl font-bold text-primary mb-8 dark:text-white">أهلاً بك</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-primary mb-8 dark:text-white">أهلاً بك</h1>
 
                 <div className="space-y-4 w-full max-w-xs">
                     {steps.map((step, index) => (
@@ -94,7 +90,7 @@ const WelcomeScreen: React.FC = () => {
                             <div className="w-8 flex-shrink-0 flex items-center justify-center">
                                 <StatusIcon status={step.status} />
                             </div>
-                            <p className={`text-lg font-semibold ${step.status === 'success' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                            <p className={`text-base md:text-lg font-semibold ${step.status === 'success' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}>
                                 {step.text}
                             </p>
                         </div>
