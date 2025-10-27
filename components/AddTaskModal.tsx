@@ -21,18 +21,16 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSave, ta
     const [taskData, setTaskData] = useState(initialTaskState);
 
     useEffect(() => {
-        if (isOpen) {
-            if (taskToEdit) {
-                setTaskData({
-                    title: taskToEdit.title,
-                    description: taskToEdit.description || '',
-                    due_date: taskToEdit.due_date || '',
-                });
-            } else {
-                setTaskData(initialTaskState);
-            }
+        if (taskToEdit) {
+            setTaskData({
+                title: taskToEdit.title,
+                description: taskToEdit.description || '',
+                due_date: taskToEdit.due_date || '',
+            });
+        } else {
+            setTaskData(initialTaskState);
         }
-    }, [taskToEdit, isOpen]);
+    }, [taskToEdit]);
 
     useEffect(() => {
         if (isOpen) document.body.style.overflow = 'hidden';

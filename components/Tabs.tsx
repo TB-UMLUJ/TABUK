@@ -1,9 +1,9 @@
 
 
 import React from 'react';
-import { BookOpenIcon, ChartPieIcon, PhoneIcon, ClipboardDocumentCheckIcon, DocumentDuplicateIcon } from '../icons/Icons';
+import { BookOpenIcon, ChartPieIcon, PhoneIcon, ClipboardDocumentCheckIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
 
-type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions';
+type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
 
 interface TabsProps {
     activeTab: TabId;
@@ -17,6 +17,7 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
         { id: 'tasks', name: 'المهام والتذكيرات', icon: ClipboardDocumentCheckIcon },
         { id: 'transactions', name: 'إدارة المعاملات', icon: DocumentDuplicateIcon },
         { id: 'dashboard', name: 'لوحة المعلومات', icon: ChartPieIcon },
+        { id: 'statistics', name: 'الإحصائيات', icon: ChartBarIcon },
     ];
 
     return (

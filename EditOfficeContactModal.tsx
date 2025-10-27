@@ -13,14 +13,14 @@ interface EditOfficeContactModalProps {
 
 const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen, onClose, onSave, contactToEdit }) => {
     const [isClosing, setIsClosing] = useState(false);
-    const [contactData, setContactData] = useState<OfficeContact | null>(contactToEdit);
+    const [contactData, setContactData] = useState<OfficeContact | null>(null);
 
     useEffect(() => {
-        // Sync local state with the prop when the modal is opened or the contact prop changes.
-        if (isOpen && contactToEdit) {
+        // When contactToEdit prop changes, update the internal state.
+        if (contactToEdit) {
             setContactData({ ...contactToEdit });
         }
-    }, [contactToEdit, isOpen]);
+    }, [contactToEdit]);
 
     useEffect(() => {
         if (isOpen) {

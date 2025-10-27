@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Employee } from '../types';
@@ -44,9 +45,11 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
             window.location.href = `tel:${employee.phone_direct}`;
         }
     }, [employee]);
+    
+    const isValidEmail = (email: string | undefined) => email && email.includes('@');
 
     const handleEmail = useCallback(() => {
-        if (employee?.email) {
+        if (employee?.email && isValidEmail(employee.email)) {
             window.location.href = `mailto:${employee.email}`;
         }
     }, [employee]);
@@ -115,7 +118,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 mb-6">
                         <div className="text-center flex-shrink-0">
                              <div className="w-32 h-32 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center mx-auto border-4 border-gray-200 dark:border-gray-600 dark:bg-gray-700">
-                                <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar)}</span>
+                                <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar || '')}</span>
                             </div>
                         </div>
                         <div className="flex-1 text-center md:text-right w-full">
@@ -135,7 +138,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                                 </button>
                                 <button
                                     onClick={handleEmail}
-                                    disabled={!employee.email}
+                                    disabled={!isValidEmail(employee.email)}
                                     className="text-center bg-primary/10 text-primary p-3 rounded-lg hover:bg-primary/20 transition-all duration-200 transform hover:scale-105 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
                                     aria-label="ارسال بريد إلكتروني"
                                     title="ارسال بريد إلكتروني"
@@ -164,7 +167,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                         <InfoRow label="القطاع" value={employee.department} icon={<BuildingOfficeIcon className="w-5 h-5"/>}/>
                         <InfoRow label="المركز" value={employee.center} icon={<BuildingOfficeIcon className="w-5 h-5"/>}/>
                         <InfoRow label="رقم الجوال" value={employee.phone_direct} icon={<PhoneIcon className="w-5 h-5"/>} href={`tel:${employee.phone_direct}`} />
-                        <InfoRow label="البريد الإلكتروني" value={employee.email} icon={<EmailIcon className="w-5 h-5"/>} href={`mailto:${employee.email}`} />
+                        <InfoRow label="البريد الإلكتروني" value={employee.email} icon={<EmailIcon className="w-5 h-5"/>} href={isValidEmail(employee.email) ? `mailto:${employee.email}` : undefined} />
                         <InfoRow label="السجل المدني / الإقامة" value={employee.national_id} icon={<IdentificationIcon className="w-5 h-5"/>}/>
                         <InfoRow label="الجنسية" value={employee.nationality} icon={<GlobeAltIcon className="w-5 h-5"/>}/>
                         <InfoRow label="الجنس" value={employee.gender} icon={<UsersIcon className="w-5 h-5"/>}/>

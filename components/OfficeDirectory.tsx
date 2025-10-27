@@ -42,7 +42,14 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
     return (
         <div className="mt-6 animate-fade-in relative pb-24">
             <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <button 
+                        onClick={onAddContact} 
+                        className="p-2.5 rounded-lg w-full sm:w-auto flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                        title="إضافة تحويلة جديدة"
+                    >
+                        <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                    </button>
                     <div className="relative w-full flex-grow">
                         <input
                             type="text"
@@ -55,19 +62,12 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                             <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                         </div>
                     </div>
-                     <div className="flex items-center gap-2 w-full md:w-auto">
-                        <button 
-                            onClick={onAddContact} 
-                            className="p-2.5 rounded-lg flex-1 md:flex-none hidden md:flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
-                            title="إضافة تحويلة جديدة"
-                        >
-                            <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                     <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button onClick={handleImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
+                            <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
                         </button>
-                        <button onClick={handleImportClick} className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
-                            <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> استيراد
-                        </button>
-                        <button onClick={onExport} className="p-2.5 rounded-lg flex-1 md:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
-                            <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> تصدير
+                        <button onClick={onExport} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
+                            <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">تصدير</span>
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx, .xls" />
                     </div>

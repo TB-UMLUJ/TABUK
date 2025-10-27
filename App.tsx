@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -27,6 +28,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 import { mockTasks } from './data/mockTasks';
 import { mockTransactions } from './data/mockTransactions';
 import SettingsScreen from './components/SettingsScreen';
+import StatisticsView from './components/StatisticsView';
 
 
 declare const XLSX: any;
@@ -44,12 +46,11 @@ const App: React.FC = () => {
     const [officeContacts, setOfficeContacts] = useState<OfficeContact[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [favorites, setFavorites] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
     // UI & Filter State
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState<'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions'>('directory');
+    const [activeTab, setActiveTab] = useState<'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('directory');
     const [isImporting, setIsImporting] = useState<boolean>(false);
     
     // Modal State
@@ -118,26 +119,22 @@ const App: React.FC = () => {
                     { data: contactsData, error: contactsError },
                     { data: tasksData, error: tasksError },
                     { data: transactionsData, error: transactionsError },
-                    { data: favoritesData, error: favoritesError }
                 ] = await Promise.all([
                     supabase.from('employees').select('*').order('full_name_ar', { ascending: true }),
                     supabase.from('office_contacts').select('*').order('name', { ascending: true }),
                     supabase.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }),
                     supabase.from('transactions').select('*').order('date', { ascending: false }),
-                    supabase.from('employee_favorites').select('employee_id')
                 ]);
 
                 if (employeesError) throw employeesError;
                 if (contactsError) throw contactsError;
                 if (tasksError) throw tasksError;
                 if (transactionsError) throw transactionsError;
-                if (favoritesError) throw favoritesError;
 
                 setEmployees(employeesData || []);
                 setOfficeContacts(contactsData || []);
                 setTasks(tasksData || []);
                 setTransactions(transactionsData || []);
-                setFavorites(favoritesData ? favoritesData.map((f: any) => f.employee_id) : []);
 
             } catch (error) {
                 console.error("Error fetching or seeding data:", error);
@@ -153,26 +150,6 @@ const App: React.FC = () => {
         }
     }, [isAuthenticated, addToast]);
 
-
-    const toggleFavorite = async (employeeId: number) => {
-        const isCurrentlyFavorite = favorites.includes(employeeId);
-        
-        if (isCurrentlyFavorite) {
-            const { error } = await supabase.from('employee_favorites').delete().eq('employee_id', employeeId);
-            if (error) {
-                addToast('خطأ في إزالة من المفضلة', 'error');
-            } else {
-                setFavorites(prev => prev.filter(id => id !== employeeId));
-            }
-        } else {
-            const { error } = await supabase.from('employee_favorites').insert({ employee_id: employeeId });
-            if (error) {
-                addToast('خطأ في الإضافة إلى المفضلة', 'error');
-            } else {
-                setFavorites(prev => [...prev, employeeId]);
-            }
-        }
-    };
 
     const filteredEmployees = useMemo(() => {
         return employees.filter(employee => {
@@ -192,10 +169,10 @@ const App: React.FC = () => {
 
     // --- Authentication Handlers ---
     const handleLogin = () => {
+        sessionStorage.setItem('isAuthenticated', 'true');
+        setIsAuthenticated(true);
         setShowWelcome(true);
         setTimeout(() => {
-            sessionStorage.setItem('isAuthenticated', 'true');
-            setIsAuthenticated(true);
             setShowWelcome(false);
         }, 4000);
     };
@@ -444,21 +421,21 @@ const App: React.FC = () => {
     const handleImportEmployees = (file: File) => {
         setIsImporting(true);
         const aliases = {
-            full_name_ar: ['الاسم الكامل (عربي)', 'الاسم', 'full_name_ar'],
-            full_name_en: ['الاسم الكامل (إنجليزي)', 'full_name_en'],
+            full_name_ar: ['الاسم الكامل (عربي)', 'الاسم', 'full_name_ar', 'الاسم باللغة العربية'],
+            full_name_en: ['الاسم الكامل (إنجليزي)', 'full_name_en', 'الاسم باللغة الانجليزية'],
             employee_id: ['الرقم الوظيفي', 'employee_id'],
             job_title: ['المسمى الوظيفي', 'job_title'],
             department: ['القطاع', 'department'],
-            phone_direct: ['الجوال', 'phone_direct'],
-            email: ['البريد الإلكتروني', 'email'],
+            phone_direct: ['الجوال', 'phone_direct', 'رقم الجوال'],
+            email: ['البريد الإلكتروني', 'email', 'الايميل'],
             center: ['المركز', 'center'],
-            national_id: ['رقم السجل المدني/الإقامة', 'national_id'],
+            national_id: ['رقم السجل المدني/الإقامة', 'national_id', 'السجل المدني / الإقامة'],
             nationality: ['الجنسية', 'nationality'],
             gender: ['الجنس', 'gender'],
             date_of_birth: ['تاريخ الميلاد', 'date_of_birth'],
             classification_id: ['رقم التصنيف', 'classification_id'],
         };
-        const requiredKeys = ['full_name_ar', 'employee_id', 'job_title', 'department'];
+        const requiredKeys = ['employee_id'];
 
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             if (error) {
@@ -467,40 +444,94 @@ const App: React.FC = () => {
                 return;
             }
 
-            const validData = data.filter(item => requiredKeys.every(key => item[key] && String(item[key]).trim() !== ''));
-            if (validData.length !== data.length) {
-                addToast(`تم تخطي ${data.length - validData.length} صفًا بسبب بيانات غير مكتملة.`, 'warning');
+            const employeeIdHeaders = ['الرقم الوظيفي', 'employee_id', ...aliases.employee_id].map(h => h.toLowerCase());
+
+            const validData = data.filter(item => {
+                // Rule 1: Must not be a header row
+                const employeeIdValue = String(item.employee_id || '').trim().toLowerCase();
+                if (employeeIdHeaders.includes(employeeIdValue)) {
+                    return false;
+                }
+
+                // Rule 2: Must have the required key with actual content
+                const hasRequiredKey = item.employee_id && String(item.employee_id).trim() !== '';
+                if (!hasRequiredKey) {
+                    return false;
+                }
+                
+                return true;
+            });
+
+            const ignoredRowsCount = data.length - validData.length;
+            if (ignoredRowsCount > 0) {
+                addToast(`تم تجاهل ${ignoredRowsCount} صفًا لعدم احتوائها على رقم وظيفي أو لكونها ترويسات متكررة.`, 'info');
             }
-            if (validData.length === 0) {
-                addToast('لم يتم العثور على بيانات صالحة للاستيراد.', 'error');
+
+            // Deduplicate data from the file based on employee_id, keeping the last entry.
+            const employeeMap = new Map<string, any>();
+            validData.forEach(item => {
+                const employeeId = String(item.employee_id || '').trim();
+                if (employeeId) {
+                    employeeMap.set(employeeId, item);
+                }
+            });
+            const deduplicatedData = Array.from(employeeMap.values());
+            const duplicateCount = validData.length - deduplicatedData.length;
+
+            if (duplicateCount > 0) {
+                addToast(`تم دمج ${duplicateCount} سجلًا مكررًا من الملف. سيتم استخدام أحدث البيانات لكل موظف.`, 'info');
+            }
+
+            if (deduplicatedData.length === 0) {
+                 if (ignoredRowsCount === 0) {
+                    addToast('لم يتم العثور على بيانات صالحة للاستيراد.', 'error');
+                }
                 setIsImporting(false);
                 return;
             }
             
-            const employeesToUpsert = validData.map(item => {
+            let invalidGenderCount = 0;
+            const employeesToUpsert = deduplicatedData.map(item => {
                 const employee: any = {};
                 for (const key in aliases) {
                     if (item[key] !== undefined) employee[key] = item[key];
                 }
+
                 if (item.date_of_birth) {
                     if (typeof item.date_of_birth === 'number' && item.date_of_birth > 1) {
                         employee.date_of_birth = new Date(Math.round((item.date_of_birth - 25569) * 86400 * 1000)).toISOString();
                     } else if (typeof item.date_of_birth === 'string') {
                         const parsedDate = new Date(item.date_of_birth);
                         if (!isNaN(parsedDate.getTime())) {
-                             employee.date_of_birth = parsedDate.toISOString();
+                            employee.date_of_birth = parsedDate.toISOString();
+                        } else {
+                            employee.date_of_birth = null;
                         }
+                    } else {
+                        employee.date_of_birth = null;
                     }
+                } else {
+                    employee.date_of_birth = null;
                 }
+
+                if (item.gender && String(item.gender).length > 20) {
+                    employee.gender = null;
+                    invalidGenderCount++;
+                }
+                
                 return employee;
             });
+            
+            if (invalidGenderCount > 0) {
+                 addToast(`تم تجاهل بيانات "الجنس" لـ ${invalidGenderCount} موظفًا لأنها تتجاوز الحد المسموح به.`, 'warning');
+            }
 
             const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
             setIsImporting(false);
             if (upsertError) {
                 addToast(`خطأ في استيراد الموظفين: ${upsertError.message}`, 'error');
             } else {
-                addToast(`تم استيراد وتحديث ${validData.length} موظف بنجاح!`, 'success');
+                addToast(`تم استيراد وتحديث ${deduplicatedData.length} موظف بنجاح!`, 'success');
                 const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*').order('full_name_ar', { ascending: true });
                 if (!employeesError) setEmployees(employeesData || []);
             }
@@ -658,8 +689,6 @@ const App: React.FC = () => {
                             <EmployeeList 
                                 employees={filteredEmployees} 
                                 onSelectEmployee={setSelectedEmployee} 
-                                favorites={favorites} 
-                                onToggleFavorite={toggleFavorite} 
                             />
                         }
                     </>
@@ -694,6 +723,8 @@ const App: React.FC = () => {
                     onImport={handleImportTransactions}
                     onExport={handleExportTransactions}
                 />}
+
+                {activeTab === 'statistics' && <StatisticsView employees={employees} />}
 
             </main>
             
@@ -752,10 +783,6 @@ const App: React.FC = () => {
             <BottomNavBar 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
-                onAddEmployeeClick={handleOpenAddModal}
-                onAddOfficeContactClick={handleOpenAddContactModal}
-                onAddTaskClick={handleOpenAddTaskModal}
-                onAddTransactionClick={handleOpenAddTransactionModal}
             />
         </div>
     );

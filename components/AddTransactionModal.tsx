@@ -28,14 +28,12 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
     const { addToast } = useToast();
 
     useEffect(() => {
-        if (isOpen) {
-            if (transactionToEdit) {
-                setTransactionData({ ...initialTransactionState, ...transactionToEdit });
-            } else {
-                setTransactionData(initialTransactionState);
-            }
+        if (transactionToEdit) {
+            setTransactionData({ ...initialTransactionState, ...transactionToEdit });
+        } else {
+            setTransactionData(initialTransactionState);
         }
-    }, [transactionToEdit, isOpen]);
+    }, [transactionToEdit]);
 
     useEffect(() => {
         if (isOpen) document.body.style.overflow = 'hidden';

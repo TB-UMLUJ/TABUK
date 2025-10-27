@@ -1,13 +1,12 @@
+
 import React from 'react';
 import { Employee } from '../types';
-import { StarIcon, BuildingOfficeIcon, MapPinIcon, IdentificationIcon, ShareIcon } from '../icons/Icons';
+import { BuildingOfficeIcon, MapPinIcon, IdentificationIcon, ShareIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
 
 interface EmployeeCardProps {
     employee: Employee;
     onSelect: () => void;
-    isFavorite: boolean;
-    onToggleFavorite: (e: React.MouseEvent) => void;
 }
 
 const getInitials = (name: string) => {
@@ -15,7 +14,7 @@ const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).slice(0, 2).join('');
 };
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect, isFavorite, onToggleFavorite }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
     const { addToast } = useToast();
 
     const handleShare = async (e: React.MouseEvent) => {
@@ -30,7 +29,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect, isFavor
         if (employee.phone_direct) {
             shareTextParts.push(`رقم الجوال: ${employee.phone_direct}`);
         }
-        if (employee.email) {
+        if (employee.email && employee.email.includes('@')) {
             shareTextParts.push(`البريد الإلكتروني: ${employee.email}`);
         }
 
@@ -63,26 +62,19 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect, isFavor
             onClick={onSelect} 
             className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group dark:bg-gray-800"
         >
-             <div className="absolute top-3 left-3 flex items-center gap-1">
+             <div className="absolute top-3 left-3">
                  <button
                     onClick={handleShare}
-                    className="p-1.5 rounded-full bg-white/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200 transform hover:scale-125 dark:bg-gray-700/50"
+                    className="p-1.5 rounded-full bg-primary/10 text-primary transition-all duration-200 transform hover:scale-110 dark:bg-primary/20 dark:text-primary-light"
                     aria-label="مشاركة بيانات الموظف"
                     title="مشاركة"
                 >
-                    <ShareIcon className="w-5 h-5 text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary-light" />
-                </button>
-                <button
-                    onClick={onToggleFavorite}
-                    className="p-1.5 rounded-full bg-white/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200 transform hover:scale-125 dark:bg-gray-700/50"
-                    aria-label="Toggle Favorite"
-                >
-                    <StarIcon className={`w-5 h-5 transition-colors ${isFavorite ? 'text-favorite fill-current' : 'text-gray-300 hover:text-favorite dark:text-gray-500 dark:hover:text-favorite'}`} />
+                    <ShareIcon className="w-5 h-5" />
                 </button>
             </div>
 
             <div className="w-20 h-20 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center border-4 border-gray-100 dark:border-gray-700 dark:bg-gray-700">
-                <span className="text-2xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar)}</span>
+                <span className="text-2xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar || '')}</span>
             </div>
             <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-white truncate" title={employee.full_name_ar}>{employee.full_name_ar}</h3>

@@ -52,23 +52,20 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
     const [isClosing, setIsClosing] = useState(false);
     const [employeeData, setEmployeeData] = useState(initialEmployeeState);
 
-    // Effect to populate form data based on employeeToEdit prop and isOpen status
+    // Effect to populate form data based on employeeToEdit prop
     useEffect(() => {
-        // Only update form data when the modal is actually open
-        if (isOpen) {
-            if (employeeToEdit) {
-                // Edit mode: populate form
-                setEmployeeData({
-                    ...initialEmployeeState,
-                    ...employeeToEdit,
-                    date_of_birth: employeeToEdit.date_of_birth ? new Date(employeeToEdit.date_of_birth).toISOString().split('T')[0] : '',
-                });
-            } else {
-                // Add mode: ensure form is reset
-                setEmployeeData(initialEmployeeState);
-            }
+        if (employeeToEdit) {
+            // Edit mode: populate form
+            setEmployeeData({
+                ...initialEmployeeState,
+                ...employeeToEdit,
+                date_of_birth: employeeToEdit.date_of_birth ? new Date(employeeToEdit.date_of_birth).toISOString().split('T')[0] : '',
+            });
+        } else {
+            // Add mode: ensure form is reset
+            setEmployeeData(initialEmployeeState);
         }
-    }, [employeeToEdit, isOpen]);
+    }, [employeeToEdit]);
 
     // Effect to handle body scroll based on modal visibility
     useEffect(() => {
