@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
-    <meta charset="UTF-g" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>تجمع تبوك الصحي</title>
     <link rel="icon" href="https://f.top4top.io/p_3585pciua1.png" type="image/png">
@@ -89,6 +89,17 @@
       .animate-modal-out { animation: modal-out 0.3s ease-out forwards; }
       .animate-backdrop-in { animation: backdrop-in 0.3s ease-out forwards; }
       .animate-backdrop-out { animation: backdrop-out 0.3s ease-out forwards; }
+
+      @keyframes slide-in-right {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @keyframes slide-out-right {
+        from { transform: translateX(0); }
+        to { transform: translateX(100%); }
+      }
+      .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-slide-out-right { animation: slide-out-right 0.3s ease-out forwards; }
       
       /* Toast Notifications */
       .toast-container {

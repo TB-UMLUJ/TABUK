@@ -4,20 +4,19 @@ import { tabukHealthClusterLogo } from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 interface LoginScreenProps {
-    onLogin: (rememberMe: boolean) => void;
+    onLogin: () => void;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Hardcoded credentials for demonstration
         if (username === 'admin' && password === '1234') {
-            onLogin(rememberMe);
+            onLogin();
         } else {
             setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
             setPassword('');
@@ -38,7 +37,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 dark:bg-gray-800">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-white">أهلاً بك</h1>
-                        <p className="text-sm sm:text-base text-gray-500 mt-2 dark:text-gray-400">سجل الدخول للوصول إلى دليل الموظفين</p>
+                        <p className="text-sm sm:text-base text-gray-500 mt-2 dark:text-gray-400">سجّل الدخول لتجربة إدارة أسرع وأذكى</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
@@ -76,23 +75,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input
-                                    id="remember-me"
-                                    name="remember-me"
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                                />
-                                <label htmlFor="remember-me" className="ml-2 mr-2 block text-sm text-gray-900 dark:text-gray-300">
-                                    تذكرني
-                                </label>
-                            </div>
-                        </div>
-
-                        {error && <p className="text-red-500 text-sm text-center !mt-4">{error}</p>}
+                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         
                         <button
                             type="submit"

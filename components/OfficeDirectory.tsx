@@ -35,6 +35,10 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
         ).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     }, [contacts, searchTerm]);
 
+    const emptyMessage = searchTerm
+        ? "لا توجد نتائج مطابقة لبحثك."
+        : "لا توجد تحويلات مكاتب حالياً. يمكنك إضافة تحويلة جديدة أو استيراد قائمة.";
+
     return (
         <div className="mt-6 animate-fade-in relative pb-24">
             <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
@@ -81,7 +85,9 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                     ))}
                 </div>
             ) : (
-                <p className="text-center text-gray-500 mt-8">لا توجد نتائج مطابقة لبحثك.</p>
+                <div className="text-center py-10 px-4 bg-gray-50 rounded-lg dark:bg-gray-800">
+                    <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+                </div>
             )}
             
         </div>
