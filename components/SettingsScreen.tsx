@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { ArrowRightIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon, TrashIcon, ShieldCheckIcon, PencilIcon } from '../icons/Icons';
+import { CloseIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon, TrashIcon, ShieldCheckIcon, PencilIcon } from '../icons/Icons';
 import ThemeToggle from './ThemeToggle';
 import AboutModal from './AboutModal';
 import { useSettings } from '../contexts/SettingsContext';
@@ -39,7 +39,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose, onLogo
 
     return ReactDOM.createPortal(
         <div 
-            className={`fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 ${isOpen ? 'animate-slide-in-right' : 'animate-slide-out-right'}`}
+            className={`fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 ${isOpen ? 'animate-slide-in-left' : 'animate-slide-out-left'}`}
             role="dialog"
             aria-modal="true"
         >
@@ -50,9 +50,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose, onLogo
                     <button
                         onClick={handleClose}
                         className="p-2.5 rounded-lg text-gray-500 hover:bg-primary/10 hover:text-primary transition-all duration-200 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
-                        aria-label="العودة"
+                        aria-label="إغلاق"
                     >
-                        <ArrowRightIcon className="h-6 w-6" />
+                        <CloseIcon className="h-6 w-6" />
                     </button>
                 </div>
             </header>

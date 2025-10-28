@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { tabukHealthClusterLogo } from './Logo';
+import { tabukHealthClusterLogoMain } from './Logo';
 import { ArrowPathIcon, CheckCircleIcon } from '../icons/Icons';
 
 type StepStatus = 'pending' | 'loading' | 'success';
@@ -74,9 +74,9 @@ const WelcomeScreen: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 animate-fade-in dark:bg-gray-900">
             <div className="text-center flex flex-col items-center">
                 <img
-                    src={tabukHealthClusterLogo}
+                    src={tabukHealthClusterLogoMain}
                     alt="شعار تجمع تبوك الصحي"
-                    className="w-40 h-auto mx-auto mb-10"
+                    className="w-80 h-auto mx-auto mb-10"
                 />
                 <h1 className="text-3xl md:text-4xl font-bold text-primary mb-8 dark:text-white">أهلاً بك</h1>
 

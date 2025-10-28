@@ -1,6 +1,6 @@
 import React from 'react';
 import { AdjustmentsVerticalIcon } from '../icons/Icons';
-import { tabukHealthClusterLogo } from './Logo';
+import { tabukHealthClusterLogoHeader } from './Logo';
 
 interface HeaderProps {
     onOpenSettings: () => void;
@@ -11,7 +11,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700">
             <div className="container mx-auto px-4 py-3 md:px-6 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <img src={tabukHealthClusterLogo} alt="Logo" className="h-10 sm:h-12 w-auto"/>
+                    <img src={tabukHealthClusterLogoHeader} alt="Logo" className="h-10 sm:h-12 w-auto"/>
                     <div className="min-w-0">
                         <h1 className="text-base sm:text-lg md:text-xl font-bold text-primary dark:text-white truncate">تجمع تبوك الصحي</h1>
                     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { CloseIcon } from '../icons/Icons';
-import { tabukHealthClusterLogo } from './Logo';
+import { tabukHealthClusterLogoHeader } from './Logo';
 
 // Hardcoded metadata to prevent fetch errors on deployed environments.
 const metadata = {
@@ -66,7 +66,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                         <CloseIcon className="w-6 h-6" />
                     </button>
                     <div className="text-center">
-                         <img src={tabukHealthClusterLogo} alt="شعار تجمع تبوك الصحي" className="w-24 h-auto mx-auto mb-4" />
+                         <img src={tabukHealthClusterLogoHeader} alt="شعار تجمع تبوك الصحي" className="w-36 h-auto mx-auto mb-4" />
                         <h2 className="text-2xl font-bold text-primary mb-2 dark:text-white">{metadata.name}</h2>
                         <p className="text-sm text-gray-500 mb-4 font-semibold dark:text-gray-400">الإصدار 1.0.0</p>
                         <p className="text-gray-600 bg-gray-50 p-4 rounded-lg text-base leading-relaxed mb-6 dark:bg-gray-700 dark:text-gray-300">

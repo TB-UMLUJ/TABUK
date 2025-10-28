@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserIcon, KeyIcon } from '../icons/Icons';
-import { tabukHealthClusterLogo } from './Logo';
+import { tabukHealthClusterLogoMain } from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 interface LoginScreenProps {
@@ -30,9 +30,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             </div>
             <div className="w-full max-w-md mx-auto">
                 <img
-                    src={tabukHealthClusterLogo}
+                    src={tabukHealthClusterLogoMain}
                     alt="شعار تجمع تبوك الصحي"
-                    className="w-48 h-auto mx-auto mb-10"
+                    className="w-80 h-auto mx-auto mb-10"
                 />
                 <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 dark:bg-gray-800">
                     <div className="text-center mb-8">
