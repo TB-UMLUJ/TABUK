@@ -6,7 +6,7 @@ interface StatisticsViewProps {
     employees: Employee[];
 }
 
-type GroupByOption = 'job_title' | 'nationality' | 'department';
+type GroupByOption = 'job_title' | 'nationality' | 'center';
 
 const StatisticsView: React.FC<StatisticsViewProps> = ({ employees }) => {
     const [groupBy, setGroupBy] = useState<GroupByOption>('job_title');
@@ -49,7 +49,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ employees }) => {
                         >
                             <option value="job_title">المسمى الوظيفي</option>
                             <option value="nationality">الجنسية</option>
-                            <option value="department">القطاع</option>
+                            <option value="center">المركز</option>
                         </select>
                     </div>
                 </div>

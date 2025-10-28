@@ -21,6 +21,7 @@ export interface OfficeContact {
   name: string;
   extension: string;
   location?: string;
+  email?: string;
 }
 
 export interface Task {

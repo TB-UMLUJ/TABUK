@@ -7,9 +7,11 @@ interface TaskCardProps {
     onToggleComplete: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    allowDeletion: boolean;
+    allowEditing: boolean;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onEdit, onDelete }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onEdit, onDelete, allowDeletion, allowEditing }) => {
     
     const formattedDate = task.due_date 
         ? new Date(task.due_date + 'T00:00:00.000Z').toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -42,20 +44,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onEdit, onD
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-1 flex-shrink-0">
-                <button
-                    onClick={onEdit}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-                    title="تعديل المهمة"
-                >
-                    <PencilIcon className="w-5 h-5" />
-                </button>
-                 <button
-                    onClick={onDelete}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
-                    title="حذف المهمة"
-                >
-                    <TrashIcon className="w-5 h-5" />
-                </button>
+                {allowEditing && (
+                    <button
+                        onClick={onEdit}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+                        title="تعديل المهمة"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                    </button>
+                )}
+                {allowDeletion && (
+                    <button
+                        onClick={onDelete}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
+                        title="حذف المهمة"
+                    >
+                        <TrashIcon className="w-5 h-5" />
+                    </button>
+                )}
             </div>
         </div>
     );

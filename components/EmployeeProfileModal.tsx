@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Employee } from '../types';
@@ -10,6 +13,8 @@ interface EmployeeProfileModalProps {
     onClose: () => void;
     onEdit: (employee: Employee) => void;
     onDelete: (employee: Employee) => void;
+    allowDeletion: boolean;
+    allowEditing: boolean;
 }
 
 const getInitials = (name: string) => {
@@ -18,7 +23,7 @@ const getInitials = (name: string) => {
 };
 
 
-const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, employee, onClose, onEdit, onDelete }) => {
+const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, employee, onClose, onEdit, onDelete, allowDeletion, allowEditing }) => {
     const [isClosing, setIsClosing] = useState(false);
 
     useEffect(() => {
@@ -146,14 +151,20 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                                      <EmailIcon className="w-6 h-6" />
                                 </button>
                             
-                                <div className="border-l h-6 border-gray-300 dark:border-gray-600 mx-1"></div>
+                                {(allowEditing || allowDeletion) && (
+                                    <div className="border-l h-6 border-gray-300 dark:border-gray-600 mx-1"></div>
+                                )}
                                 
-                                <button onClick={handleEdit} className="text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" aria-label="تعديل" title="تعديل">
-                                    <PencilIcon className="w-6 h-6" />
-                                </button>
-                                <button onClick={handleDelete} className="text-center bg-danger/10 text-danger p-3 rounded-lg hover:bg-danger/20 transition-all duration-200 transform hover:scale-105 dark:bg-danger/20 dark:text-red-400 dark:hover:bg-danger/30" aria-label="حذف" title="حذف">
-                                    <TrashIcon className="w-6 h-6" />
-                                </button>
+                                {allowEditing && (
+                                    <button onClick={handleEdit} className="text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" aria-label="تعديل" title="تعديل">
+                                        <PencilIcon className="w-6 h-6" />
+                                    </button>
+                                )}
+                                {allowDeletion && (
+                                    <button onClick={handleDelete} className="text-center bg-danger/10 text-danger p-3 rounded-lg hover:bg-danger/20 transition-all duration-200 transform hover:scale-105 dark:bg-danger/20 dark:text-red-400 dark:hover:bg-danger/30" aria-label="حذف" title="حذف">
+                                        <TrashIcon className="w-6 h-6" />
+                                    </button>
+                                )}
                             </div>
 
                         </div>

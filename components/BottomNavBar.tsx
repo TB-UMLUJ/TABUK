@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpenIcon, PhoneIcon, ClipboardDocumentCheckIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
+import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
 
 type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
 
@@ -46,7 +46,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 />
                 <NavButton
                     label="المهام"
-                    icon={ClipboardDocumentCheckIcon}
+                    icon={BellIcon}
                     onClick={() => setActiveTab('tasks')}
                     isActive={activeTab === 'tasks'}
                 />

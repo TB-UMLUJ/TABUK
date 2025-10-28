@@ -6,7 +6,8 @@ interface TransactionCardProps {
     transaction: Transaction;
     onSelect: () => void;
     onEdit: (e: React.MouseEvent) => void;
-    onDelete: (e: React.MouseEvent) => void;
+    onDelete?: (e: React.MouseEvent) => void;
+    allowEditing: boolean;
 }
 
 const statusMap: Record<TransactionStatus, { text: string; className: string }> = {
@@ -22,7 +23,7 @@ const platformMap: Record<TransactionPlatform, string> = {
     HospitalEmail: 'بريد المستشفى'
 };
 
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onSelect, onEdit, onDelete }) => {
+const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onSelect, onEdit, onDelete, allowEditing }) => {
     
     const formattedDate = new Date(transaction.date + 'T00:00:00.000Z').toLocaleDateString('ar-SA', { day: '2-digit', month: 'short', year: 'numeric' });
     const statusInfo = statusMap[transaction.status];
@@ -64,20 +65,24 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onSelect
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                    onClick={onEdit}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-                    title="تعديل"
-                >
-                    <PencilIcon className="w-5 h-5" />
-                </button>
-                 <button
-                    onClick={onDelete}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
-                    title="حذف"
-                >
-                    <TrashIcon className="w-5 h-5" />
-                </button>
+                {allowEditing && (
+                    <button
+                        onClick={onEdit}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+                        title="تعديل"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={onDelete}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
+                        title="حذف"
+                    >
+                        <TrashIcon className="w-5 h-5" />
+                    </button>
+                )}
             </div>
         </div>
     );

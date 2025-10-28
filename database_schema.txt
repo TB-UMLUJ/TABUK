@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS office_contacts (
   name varchar(255) NOT NULL,
   extension varchar(20) NOT NULL,
   location varchar(255),
+  email varchar(255),
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -73,6 +74,18 @@ CREATE TABLE IF NOT EXISTS transactions (
 --           CONSTRAINTS & INDEXES       --
 -------------------------------------------
 -- We add constraints and indexes separately to avoid errors if they already exist.
+
+-- Add email column to office_contacts if it doesn't exist. This ensures backward compatibility.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'office_contacts' AND column_name = 'email'
+    ) THEN
+        ALTER TABLE office_contacts ADD COLUMN email varchar(255);
+    END IF;
+END;
+$$;
 
 DO $$
 BEGIN

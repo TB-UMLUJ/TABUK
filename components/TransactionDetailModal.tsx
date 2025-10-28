@@ -9,6 +9,8 @@ interface TransactionDetailModalProps {
     onClose: () => void;
     onEdit: (transaction: Transaction) => void;
     onDelete: (transaction: Transaction) => void;
+    allowDeletion: boolean;
+    allowEditing: boolean;
 }
 
 const statusMap: Record<TransactionStatus, { text: string; className: string }> = {
@@ -29,7 +31,7 @@ const typeMap: Record<TransactionType, string> = {
     outgoing: 'معاملة صادرة'
 };
 
-const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen, transaction, onClose, onEdit, onDelete }) => {
+const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen, transaction, onClose, onEdit, onDelete, allowDeletion, allowEditing }) => {
     const [isClosing, setIsClosing] = useState(false);
 
     useEffect(() => {
@@ -131,14 +133,18 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ isOpen,
                     </div>
                     
                     <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-end gap-2">
-                         <button onClick={handleEdit} className="text-center bg-gray-100 text-gray-700 p-2.5 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 flex items-center gap-2 font-semibold px-4">
-                            <PencilIcon className="w-5 h-5" />
-                            <span>تعديل</span>
-                        </button>
-                        <button onClick={handleDelete} className="text-center bg-danger/10 text-danger p-2.5 rounded-lg hover:bg-danger/20 transition-all duration-200 transform hover:scale-105 dark:bg-danger/20 dark:text-red-400 dark:hover:bg-danger/30 flex items-center gap-2 font-semibold px-4">
-                            <TrashIcon className="w-5 h-5" />
-                            <span>حذف</span>
-                        </button>
+                         {allowEditing && (
+                             <button onClick={handleEdit} className="text-center bg-gray-100 text-gray-700 p-2.5 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 flex items-center gap-2 font-semibold px-4">
+                                <PencilIcon className="w-5 h-5" />
+                                <span>تعديل</span>
+                            </button>
+                         )}
+                        {allowDeletion && (
+                            <button onClick={handleDelete} className="text-center bg-danger/10 text-danger p-2.5 rounded-lg hover:bg-danger/20 transition-all duration-200 transform hover:scale-105 dark:bg-danger/20 dark:text-red-400 dark:hover:bg-danger/30 flex items-center gap-2 font-semibold px-4">
+                                <TrashIcon className="w-5 h-5" />
+                                <span>حذف</span>
+                            </button>
+                        )}
                     </div>
 
                 </div>

@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -12,6 +14,7 @@ import LoginScreen from './components/LoginScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import { useToast } from './contexts/ToastContext';
 import Tabs from './components/Tabs';
+import { useSettings } from './contexts/SettingsContext';
 import Dashboard from './components/Dashboard';
 import AddEmployeeModal from './components/AddEmployeeModal';
 import ImportLoadingModal from './ImportLoadingModal';
@@ -35,6 +38,7 @@ declare const XLSX: any;
 
 const App: React.FC = () => {
     const { addToast } = useToast();
+    const { showImportExport, allowDeletion, allowEditing } = useSettings();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
         return sessionStorage.getItem('isAuthenticated') === 'true';
     });
@@ -258,6 +262,22 @@ const App: React.FC = () => {
             addToast(`تم تحديث بيانات مكتب "${data[0].name}" بنجاح.`, 'success');
             setContactToEdit(null);
         }
+    };
+
+    const handleDeleteOfficeContact = async (contact: OfficeContact) => {
+        requestConfirmation(
+            `حذف تحويلة: "${contact.name}"`,
+            'هل أنت متأكد من رغبتك في حذف هذه التحويلة؟ لا يمكن التراجع عن هذا الإجراء.',
+            async () => {
+                const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
+                if (error) {
+                    addToast(`خطأ في حذف التحويلة: ${error.message}`, 'error');
+                } else {
+                    setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
+                    addToast('تم حذف التحويلة بنجاح.', 'success');
+                }
+            }
+        );
     };
 
     // --- Task Handlers ---
@@ -554,7 +574,7 @@ const App: React.FC = () => {
     // --- Office Contact Import/Export ---
     const handleImportOfficeContacts = (file: File) => {
         setIsImporting(true);
-        const aliases = { name: ['اسم المكتب', 'name'], extension: ['رقم التحويلة', 'extension'], location: ['الموقع', 'location'] };
+        const aliases = { name: ['اسم المكتب', 'name'], extension: ['رقم التحويلة', 'extension'], location: ['الموقع', 'location'], email: ['البريد الإلكتروني', 'email'] };
         const requiredKeys = ['name', 'extension'];
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             setIsImporting(false);
@@ -681,6 +701,7 @@ const App: React.FC = () => {
                             onImport={handleImportEmployees}
                             onAddEmployeeClick={handleOpenAddModal}
                             onExport={handleExportEmployees}
+                            showImportExport={showImportExport}
                         />
                         {loading ? 
                             <div className="flex justify-center items-center p-20">
@@ -700,8 +721,12 @@ const App: React.FC = () => {
                     contacts={officeContacts} 
                     onEditContact={handleOpenEditContactModal} 
                     onAddContact={handleOpenAddContactModal}
+                    onDeleteContact={handleDeleteOfficeContact}
                     onImport={handleImportOfficeContacts}
                     onExport={handleExportOfficeContacts}
+                    showImportExport={showImportExport}
+                    allowDeletion={allowDeletion}
+                    allowEditing={allowEditing}
                 />}
 
                 {activeTab === 'tasks' && <TasksView 
@@ -712,6 +737,9 @@ const App: React.FC = () => {
                     onToggleComplete={handleToggleTaskCompletion}
                     onImport={handleImportTasks}
                     onExport={handleExportTasks}
+                    showImportExport={showImportExport}
+                    allowDeletion={allowDeletion}
+                    allowEditing={allowEditing}
                 />}
 
                 {activeTab === 'transactions' && <TransactionsView 
@@ -722,6 +750,9 @@ const App: React.FC = () => {
                     onSelectTransaction={setSelectedTransaction}
                     onImport={handleImportTransactions}
                     onExport={handleExportTransactions}
+                    showImportExport={showImportExport}
+                    allowDeletion={allowDeletion}
+                    allowEditing={allowEditing}
                 />}
 
                 {activeTab === 'statistics' && <StatisticsView employees={employees} />}
@@ -735,6 +766,8 @@ const App: React.FC = () => {
                 onClose={() => setSelectedEmployee(null)} 
                 onEdit={handleOpenEditModal} 
                 onDelete={handleDeleteEmployee} 
+                allowDeletion={allowDeletion}
+                allowEditing={allowEditing}
             />
             <AddEmployeeModal 
                 isOpen={showAddEmployeeModal} 
@@ -771,6 +804,8 @@ const App: React.FC = () => {
                 onClose={() => setSelectedTransaction(null)}
                 onEdit={handleOpenEditTransactionModal}
                 onDelete={handleDeleteTransaction}
+                allowDeletion={allowDeletion}
+                allowEditing={allowEditing}
             />
             <ConfirmationModal 
                 {...confirmation}

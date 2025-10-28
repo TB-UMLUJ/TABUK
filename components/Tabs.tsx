@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { BookOpenIcon, ChartPieIcon, PhoneIcon, ClipboardDocumentCheckIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
+import { BookOpenIcon, ChartPieIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
 
 type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
 
@@ -14,7 +14,7 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
     const tabs = [
         { id: 'directory', name: 'الدليل', icon: BookOpenIcon },
         { id: 'officeDirectory', name: 'تحويلات المكاتب', icon: PhoneIcon },
-        { id: 'tasks', name: 'المهام والتذكيرات', icon: ClipboardDocumentCheckIcon },
+        { id: 'tasks', name: 'المهام والتذكيرات', icon: BellIcon },
         { id: 'transactions', name: 'إدارة المعاملات', icon: DocumentDuplicateIcon },
         { id: 'dashboard', name: 'لوحة المعلومات', icon: ChartPieIcon },
         { id: 'statistics', name: 'الإحصائيات', icon: ChartBarIcon },

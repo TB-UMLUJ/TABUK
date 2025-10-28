@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Employee } from '../types';
-import { BuildingOfficeIcon, MapPinIcon, IdentificationIcon, ShareIcon } from '../icons/Icons';
+import { BuildingOfficeIcon, IdentificationIcon, ShareIcon, EmailIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
 
 interface EmployeeCardProps {
@@ -79,33 +79,22 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
             <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-white truncate" title={employee.full_name_ar}>{employee.full_name_ar}</h3>
                 <p className="mt-1 text-xs font-semibold inline-block py-1 px-2.5 rounded-full bg-accent-light text-accent-dark dark:bg-accent/20 dark:text-accent-light truncate" title={employee.job_title}>{employee.job_title}</p>
-                <div className="text-xs text-gray-500 mt-2 flex items-start gap-4 dark:text-gray-400">
-                    {/* Column 1: Department & Center */}
-                    <div className="flex flex-col gap-1 min-w-0">
-                         <span className="flex items-center gap-1.5 w-full">
-                             <BuildingOfficeIcon className="w-3.5 h-3.5 flex-shrink-0"/> 
-                             <span className="truncate" title={employee.department}>{employee.department}</span>
-                         </span>
-                         {employee.center && (
-                             <span className="flex items-center gap-1.5 w-full">
-                                <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0"/>
-                                <span className="truncate" title={employee.center}>{employee.center}</span>
-                             </span>
-                         )}
-                    </div>
-                    {/* Column 2: IDs */}
-                     <div className="flex flex-col gap-1 min-w-0">
+                
+                <div className="text-xs text-gray-500 mt-2 space-y-1.5 dark:text-gray-400">
+                    <span className="hidden sm:flex items-center gap-1.5 w-full">
+                        <BuildingOfficeIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                        <span className="truncate" title={employee.department}>{employee.department}</span>
+                    </span>
+                    <span className="flex items-center gap-1.5 w-full">
+                        <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                        <span className="truncate" title={`الرقم الوظيفي: ${employee.employee_id}`}>{employee.employee_id}</span>
+                    </span>
+                    {employee.email && employee.email.includes('@') && (
                         <span className="flex items-center gap-1.5 w-full">
-                            <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/> 
-                            <span className="truncate" title={`الرقم الوظيفي: ${employee.employee_id}`}>{employee.employee_id}</span>
+                            <EmailIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                            <span className="truncate" title={employee.email} dir="ltr">{employee.email}</span>
                         </span>
-                        {employee.national_id && (
-                            <span className="flex items-center gap-1.5 w-full">
-                               <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
-                               <span className="truncate" title={`رقم السجل: ${employee.national_id}`}>{employee.national_id}</span>
-                            </span>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -10,10 +10,11 @@ interface AddOfficeContactModalProps {
     onSave: (contact: Omit<OfficeContact, 'id'>) => void;
 }
 
-const initialContactState: Omit<OfficeContact, 'id' | 'location'> & {location?: string} = {
+const initialContactState: Omit<OfficeContact, 'id' | 'location' | 'email'> & {location?: string, email?: string} = {
     name: '',
     extension: '',
     location: '',
+    email: '',
 };
 
 const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, onClose, onSave }) => {
@@ -49,7 +50,8 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
         e.preventDefault();
         const dataToSave = {
             ...contactData,
-            location: contactData.location || undefined
+            location: contactData.location || undefined,
+            email: contactData.email || undefined
         };
         onSave(dataToSave);
     };
@@ -97,6 +99,10 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
                         <div>
                             <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الموقع (اختياري)</label>
                             <input id="location" name="location" type="text" value={contactData.location || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                        </div>
+                         <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">البريد الإلكتروني (اختياري)</label>
+                            <input id="email" name="email" type="email" value={contactData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         
                         <div className="mt-8 flex justify-end gap-3">

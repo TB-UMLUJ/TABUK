@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { ArrowRightIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon } from '../icons/Icons';
+import { ArrowRightIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon, TrashIcon, ShieldCheckIcon, PencilIcon } from '../icons/Icons';
 import ThemeToggle from './ThemeToggle';
 import AboutModal from './AboutModal';
+import { useSettings } from '../contexts/SettingsContext';
+import ToggleSwitch from './ToggleSwitch';
 
 interface SettingsScreenProps {
     isOpen: boolean;
@@ -12,6 +14,7 @@ interface SettingsScreenProps {
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose, onLogout }) => {
     const [isClosing, setIsClosing] = useState(false);
+    const { showImportExport, toggleShowImportExport, allowDeletion, toggleAllowDeletion, allowEditing, toggleAllowEditing } = useSettings();
     const [showAboutModal, setShowAboutModal] = useState(false);
 
     useEffect(() => {
@@ -58,8 +61,35 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose, onLogo
             <main className="container mx-auto p-4 md:p-6">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
                     <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {/* Admin Settings Section */}
+                        <li className="p-4">
+                            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">إعدادات المسؤول</h3>
+                            <ul className="space-y-4">
+                                <li className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        {showImportExport ? <EyeIcon className="w-6 h-6 text-primary" /> : <EyeSlashIcon className="w-6 h-6 text-gray-400" />}
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">إظهار أزرار الاستيراد والتصدير</span>
+                                    </div>
+                                    <ToggleSwitch checked={showImportExport} onChange={toggleShowImportExport} ariaLabel="Toggle Import/Export Visibility" />
+                                </li>
+                                <li className="flex justify-between items-center">
+                                     <div className="flex items-center gap-3">
+                                        {allowDeletion ? <TrashIcon className="w-6 h-6 text-danger" /> : <ShieldCheckIcon className="w-6 h-6 text-gray-400" />}
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">السماح بحذف البيانات</span>
+                                    </div>
+                                    <ToggleSwitch checked={allowDeletion} onChange={toggleAllowDeletion} ariaLabel="Toggle Deletion" />
+                                </li>
+                                <li className="flex justify-between items-center">
+                                     <div className="flex items-center gap-3">
+                                        {allowEditing ? <PencilIcon className="w-6 h-6 text-accent-dark" /> : <ShieldCheckIcon className="w-6 h-6 text-gray-400" />}
+                                        <span className="font-semibold text-gray-700 dark:text-gray-300">السماح بتعديل البيانات</span>
+                                    </div>
+                                    <ToggleSwitch checked={allowEditing} onChange={toggleAllowEditing} ariaLabel="Toggle Editing" />
+                                </li>
+                            </ul>
+                        </li>
                         {/* Dark Mode Toggle */}
-                        <li className="p-4 flex justify-between items-center">
+                        <li className="p-4 flex justify-between items-center pt-6">
                             <span className="font-semibold text-gray-700 dark:text-gray-300">الوضع الداكن</span>
                             <ThemeToggle />
                         </li>
