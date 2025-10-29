@@ -32,7 +32,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 <img
                     src={tabukHealthClusterLogoMain}
                     alt="شعار تجمع تبوك الصحي"
-                    className="w-80 h-auto mx-auto mb-10"
+                    className="w-56 h-auto mx-auto mb-10"
                 />
                 <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 dark:bg-gray-800">
                     <div className="text-center mb-8">

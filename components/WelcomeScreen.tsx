@@ -76,7 +76,7 @@ const WelcomeScreen: React.FC = () => {
                 <img
                     src={tabukHealthClusterLogoMain}
                     alt="شعار تجمع تبوك الصحي"
-                    className="w-80 h-auto mx-auto mb-10"
+                    className="w-56 h-auto mx-auto mb-10"
                 />
                 <h1 className="text-3xl md:text-4xl font-bold text-primary mb-8 dark:text-white">أهلاً بك</h1>
 

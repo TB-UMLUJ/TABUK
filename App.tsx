@@ -52,6 +52,8 @@ const App: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('directory');
     const [isImporting, setIsImporting] = useState<boolean>(false);
+    const [visibleEmployeeCount, setVisibleEmployeeCount] = useState(10);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     
     // Modal State
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -151,6 +153,10 @@ const App: React.FC = () => {
     }, [isAuthenticated, addToast]);
 
 
+    useEffect(() => {
+        setVisibleEmployeeCount(10);
+    }, [searchTerm]);
+
     const filteredEmployees = useMemo(() => {
         return employees.filter(employee => {
             if (searchTerm === '') return true;
@@ -165,6 +171,22 @@ const App: React.FC = () => {
             );
         }).sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar'));
     }, [employees, searchTerm]);
+
+    const visibleEmployees = useMemo(
+        () => filteredEmployees.slice(0, visibleEmployeeCount),
+        [filteredEmployees, visibleEmployeeCount]
+    );
+
+    const hasMoreEmployees = visibleEmployeeCount < filteredEmployees.length;
+
+    const loadMoreEmployees = useCallback(() => {
+        if (isLoadingMore) return;
+        setIsLoadingMore(true);
+        setTimeout(() => {
+            setVisibleEmployeeCount(prev => prev + 10);
+            setIsLoadingMore(false);
+        }, 500);
+    }, [isLoadingMore]);
 
 
     // --- Authentication Handlers ---
@@ -707,8 +729,11 @@ const App: React.FC = () => {
                                 <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-primary dark:border-gray-700 dark:border-t-primary"></div>
                             </div> : 
                             <EmployeeList 
-                                employees={filteredEmployees} 
+                                employees={visibleEmployees} 
                                 onSelectEmployee={setSelectedEmployee} 
+                                onLoadMore={loadMoreEmployees}
+                                hasMore={hasMoreEmployees}
+                                isLoadingMore={isLoadingMore}
                             />
                         }
                     </>

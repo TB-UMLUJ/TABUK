@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Employee } from '../types';
-import { BuildingOfficeIcon, IdentificationIcon, PaperAirplaneIcon, EmailIcon } from '../icons/Icons';
+import { IdentificationIcon, PaperAirplaneIcon, EmailIcon, MapPinIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
 
 interface EmployeeCardProps {
@@ -23,7 +24,6 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
             `بيانات موظف:`,
             `الاسم: ${employee.full_name_ar}`,
             `المسمى الوظيفي: ${employee.job_title}`,
-            `القطاع: ${employee.department}`
         ];
         if (employee.phone_direct) {
             shareTextParts.push(`رقم الجوال: ${employee.phone_direct}`);
@@ -79,20 +79,37 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
                 <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-white truncate" title={employee.full_name_ar}>{employee.full_name_ar}</h3>
                 <p className="mt-1 text-xs font-semibold inline-block py-1 px-2.5 rounded-full bg-accent-dark text-gray-800 truncate" title={employee.job_title}>{employee.job_title}</p>
                 
-                <div className="text-xs text-gray-500 mt-2 space-y-1.5 dark:text-gray-400">
-                    <span className="hidden sm:flex items-center gap-1.5 w-full">
-                        <BuildingOfficeIcon className="w-3.5 h-3.5 flex-shrink-0"/>
-                        <span className="truncate" title={employee.department}>{employee.department}</span>
-                    </span>
-                    <span className="flex items-center gap-1.5 w-full">
-                        <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
-                        <span className="truncate" title={`الرقم الوظيفي: ${employee.employee_id}`}>{employee.employee_id}</span>
-                    </span>
-                    {employee.email && employee.email.includes('@') && (
-                        <span className="flex items-center gap-1.5 w-full">
-                            <EmailIcon className="w-3.5 h-3.5 flex-shrink-0"/>
-                            <span className="truncate" title={employee.email} dir="ltr">{employee.email}</span>
-                        </span>
+                <div className="text-xs text-gray-500 mt-2 space-y-2 dark:text-gray-400">
+                    {/* Row 1: Employee ID and Center */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                            <span className="truncate" title={`الرقم الوظيفي: ${employee.employee_id}`}>{employee.employee_id}</span>
+                        </div>
+                        {employee.center && (
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                                <span className="truncate" title={`المركز: ${employee.center}`}>{employee.center}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Row 2: National ID and Email */}
+                    {(employee.national_id || (employee.email && employee.email.includes('@'))) && (
+                        <div className="flex items-center gap-4 flex-wrap">
+                            {employee.national_id && (
+                               <div className="flex items-center gap-1.5 min-w-0">
+                                   <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                                   <span className="truncate" title={`السجل المدني / الإقامة: ${employee.national_id}`}>{employee.national_id}</span>
+                               </div>
+                            )}
+                            {employee.email && employee.email.includes('@') && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <EmailIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                                    <span className="truncate" title={employee.email} dir="ltr">{employee.email}</span>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
