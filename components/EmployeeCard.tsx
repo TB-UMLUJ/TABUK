@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Employee } from '../types';
 import { IdentificationIcon, PaperAirplaneIcon, EmailIcon, MapPinIcon } from '../icons/Icons';
@@ -22,15 +23,24 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
         
         const shareTextParts = [
             `بيانات موظف:`,
-            `الاسم: ${employee.full_name_ar}`,
-            `المسمى الوظيفي: ${employee.job_title}`,
+            `الاسم باللغة العربية: ${employee.full_name_ar}`,
         ];
-        if (employee.phone_direct) {
-            shareTextParts.push(`رقم الجوال: ${employee.phone_direct}`);
+
+        if (employee.full_name_en) shareTextParts.push(`الاسم باللغة الإنجليزية: ${employee.full_name_en}`);
+        if (employee.employee_id) shareTextParts.push(`الرقم الوظيفي: ${employee.employee_id}`);
+        if (employee.job_title) shareTextParts.push(`المسمى الوظيفي: ${employee.job_title}`);
+        if (employee.department) shareTextParts.push(`القطاع: ${employee.department}`);
+        if (employee.center) shareTextParts.push(`المركز: ${employee.center}`);
+        if (employee.phone_direct) shareTextParts.push(`رقم الجوال: ${employee.phone_direct}`);
+        if (employee.email && employee.email.includes('@')) shareTextParts.push(`البريد الإلكتروني: ${employee.email}`);
+        if (employee.national_id) shareTextParts.push(`السجل المدني / الإقامة: ${employee.national_id}`);
+        if (employee.nationality) shareTextParts.push(`الجنسية: ${employee.nationality}`);
+        if (employee.gender) shareTextParts.push(`الجنس: ${employee.gender}`);
+        if (employee.date_of_birth) {
+            const formattedDate = new Date(employee.date_of_birth).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+            shareTextParts.push(`تاريخ الميلاد: ${formattedDate}`);
         }
-        if (employee.email && employee.email.includes('@')) {
-            shareTextParts.push(`البريد الإلكتروني: ${employee.email}`);
-        }
+        if (employee.classification_id) shareTextParts.push(`رقم التصنيف: ${employee.classification_id}`);
 
         const shareText = shareTextParts.join('\n');
 

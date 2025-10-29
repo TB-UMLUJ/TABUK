@@ -84,7 +84,7 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
             </div>
 
             {filteredTransactions.length > 0 ? (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredTransactions.map(transaction => (
                         <TransactionCard
                             key={transaction.id}

@@ -72,7 +72,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                             {metadata.description}
                         </p>
                         <a 
-                            href="https://www.moh.gov.sa" 
+                            href="https://www.health.sa/ar"
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="inline-block bg-primary text-white font-bold py-2.5 px-6 rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:-translate-y-0.5"

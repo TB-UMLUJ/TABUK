@@ -3,6 +3,7 @@
 
 
 
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Task } from '../types';
 import TaskCard from './TaskCard';
@@ -45,7 +46,7 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
     }, [tasks, searchTerm]);
 
     const TaskList: React.FC<{taskList: Task[]}> = ({taskList}) => (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {taskList.map(task => (
                 <TaskCard
                     key={task.id}
