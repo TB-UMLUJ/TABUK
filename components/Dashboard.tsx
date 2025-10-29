@@ -75,13 +75,13 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
             
             <div className="lg:col-span-2">
                  <ChartCard title="توزيع الموظفين حسب القطاع">
-                    <BarChart data={stats.employeesByDepartment} color="#007A4D" />
+                    <BarChart data={stats.employeesByDepartment} color="#00A76F" />
                 </ChartCard>
             </div>
             
             <div className="lg:col-span-2">
                 <ChartCard title="توزيع الموظفين حسب المسمى الوظيفي">
-                    <BarChart data={stats.employeesByJobTitle} color="#009ACE" />
+                    <BarChart data={stats.employeesByJobTitle} color="#00B8D9" />
                 </ChartCard>
             </div>
         </div>

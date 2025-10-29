@@ -260,6 +260,12 @@ export const ShareIcon: React.FC<IconProps> = (props) => (
     </svg>
 );
 
+export const PaperAirplaneIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+  </svg>
+);
+
 export const Cog6ToothIcon: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5m-15 0c0-4.142 3.358-7.5 7.5-7.5 4.142 0 7.5 3.358 7.5 7.5m-7.5-7.5v-1.5m0 1.5c-1.356 0-2.662.31-3.834.877m3.834-.877c1.172-.567 2.478-.877 3.834-.877m-7.668 0C6.34 5.31 4.5 7.923 4.5 12m15 0c0-4.077-1.84-7.69-4.666-9.847M12 9.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />

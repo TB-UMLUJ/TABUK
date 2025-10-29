@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
                 <div className="flex items-center gap-3">
                     <img src={tabukHealthClusterLogoHeader} alt="Logo" className="h-10 sm:h-12 w-auto"/>
                     <div className="min-w-0">
-                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-primary dark:text-white truncate">تجمع تبوك الصحي</h1>
+                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white truncate">تجمع تبوك الصحي</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

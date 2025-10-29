@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserIcon, KeyIcon } from '../icons/Icons';
+import { UserIcon, KeyIcon, ArrowRightOnRectangleIcon } from '../icons/Icons';
 import { tabukHealthClusterLogoMain } from './Logo';
 import ThemeToggle from './ThemeToggle';
 
@@ -24,7 +24,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen relative flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 p-4 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen relative flex flex-col items-center justify-center bg-gray-100 p-4 dark:bg-gray-900">
             <div className="absolute top-4 left-4">
                 <ThemeToggle />
             </div>
@@ -36,7 +36,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 />
                 <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 dark:bg-gray-800">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-white">أهلاً بك</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">أهلاً بك</h1>
                         <p className="text-sm sm:text-base text-gray-500 mt-2 dark:text-gray-400">سجّل الدخول لتجربة إدارة أسرع وأذكى</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -52,7 +52,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     placeholder="اسم المستخدم"
-                                    className="w-full pr-10 pl-4 py-3 bg-gray-100 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition text-gray-900 dark:bg-gray-700 dark:text-white dark:focus:bg-gray-900"
+                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white ${
+                                        username ? 'bg-accent text-gray-900' : 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                    }`}
                                     required
                                 />
                             </div>
@@ -69,7 +71,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="كلمة المرور"
-                                    className="w-full pr-10 pl-4 py-3 bg-gray-100 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition text-gray-900 dark:bg-gray-700 dark:text-white dark:focus:bg-gray-900"
+                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white ${
+                                        password ? 'bg-accent text-gray-900' : 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                    }`}
                                     required
                                 />
                             </div>
@@ -79,9 +83,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                         
                         <button
                             type="submit"
-                            className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dark text-white font-bold py-3 px-4 rounded-lg hover:from-primary-dark hover:to-primary transition-all duration-300 transform hover:scale-105 shadow-lg"
                         >
-                            تسجيل الدخول
+                            <span>تسجيل الدخول</span>
+                            <ArrowRightOnRectangleIcon className="h-5 w-5" />
                         </button>
                     </form>
                 </div>

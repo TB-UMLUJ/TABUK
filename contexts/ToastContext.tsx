@@ -3,7 +3,7 @@ import { useToasts, ToastType } from '../hooks/useToasts';
 import Toast from '../components/Toast';
 
 interface ToastContextType {
-  addToast: (message: string, type?: ToastType) => void;
+  addToast: (title: string, message: string, type?: ToastType) => void;
   removeToast: (id: number) => void;
 }
 

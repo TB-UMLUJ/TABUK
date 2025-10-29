@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'deleted';
 
 export interface ToastMessage {
   id: number;
+  title: string;
   message: string;
   type: ToastType;
 }
@@ -15,9 +16,9 @@ export const useToasts = () => {
     setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, type: ToastType = 'info') => {
+  const addToast = useCallback((title: string, message: string, type: ToastType = 'info') => {
     const id = Date.now();
-    setToasts(currentToasts => [...currentToasts, { id, message, type }]);
+    setToasts(currentToasts => [...currentToasts, { id, title, message, type }]);
     
     setTimeout(() => {
       removeToast(id);

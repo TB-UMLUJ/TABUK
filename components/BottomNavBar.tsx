@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
+import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon, ChartPieIcon } from '../icons/Icons';
 
 type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
 
@@ -31,7 +31,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
     return (
         <div className="md:hidden fixed bottom-4 inset-x-4 h-16 z-50 pointer-events-none">
-            <div className="grid grid-cols-5 h-full max-w-lg mx-auto bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/80 dark:bg-gray-800/80 dark:border-gray-700/50 pointer-events-auto">
+            <div className="grid grid-cols-6 h-full max-w-lg mx-auto bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/80 dark:bg-gray-800/80 dark:border-gray-700/50 pointer-events-auto">
                 <NavButton
                     label="الدليل"
                     icon={BookOpenIcon}
@@ -55,6 +55,12 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                     icon={DocumentDuplicateIcon}
                     onClick={() => setActiveTab('transactions')}
                     isActive={activeTab === 'transactions'}
+                />
+                 <NavButton
+                    label="اللوحة"
+                    icon={ChartPieIcon}
+                    onClick={() => setActiveTab('dashboard')}
+                    isActive={activeTab === 'dashboard'}
                 />
                  <NavButton
                     label="إحصائيات"

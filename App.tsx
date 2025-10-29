@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -104,7 +100,7 @@ const App: React.FC = () => {
                     const tasksToInsert = mockTasks.map(({ id, ...rest }) => rest);
                     const { error: insertError } = await supabase.from('tasks').insert(tasksToInsert);
                     if (insertError) throw insertError;
-                    addToast('تمت إضافة بيانات المهام الأولية بنجاح.', 'info');
+                    addToast('بيانات أولية', 'تمت إضافة بيانات المهام بنجاح.', 'info');
                 }
 
                 const { count: transactionsCount, error: transactionsCountError } = await supabase.from('transactions').select('*', { count: 'exact', head: true });
@@ -114,7 +110,7 @@ const App: React.FC = () => {
                     const transactionsToInsert = mockTransactions.map(({ id, ...rest }) => rest);
                     const { error: insertError } = await supabase.from('transactions').insert(transactionsToInsert);
                     if (insertError) throw insertError;
-                    addToast('تمت إضافة بيانات المعاملات الأولية بنجاح.', 'info');
+                    addToast('بيانات أولية', 'تمت إضافة بيانات المعاملات بنجاح.', 'info');
                 }
 
                 // Fetch all data
@@ -143,7 +139,7 @@ const App: React.FC = () => {
             } catch (error) {
                 console.error("Error fetching or seeding data:", error);
                 const postgrestError = error as PostgrestError;
-                addToast(`فشل في جلب البيانات: ${postgrestError.message}`, 'error');
+                addToast('خطأ في الشبكة', `فشل في جلب البيانات: ${postgrestError.message}`, 'error');
             } finally {
                 setLoading(false);
             }
@@ -192,14 +188,14 @@ const App: React.FC = () => {
         const { data, error } = await supabase.from('employees').upsert(employeeData).select();
 
         if (error) {
-            addToast(`خطأ في حفظ الموظف: ${error.message}`, 'error');
+            addToast('خطأ', `فشل حفظ الموظف: ${error.message}`, 'error');
         } else if (data) {
             if (employeeData.id) {
                 setEmployees(prev => prev.map(emp => (emp.id === data[0].id ? data[0] : emp)));
             } else {
                 setEmployees(prev => [...prev, data[0]].sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar')));
             }
-            addToast(employeeData.id ? 'تم تحديث الموظف بنجاح!' : 'تمت إضافة الموظف بنجاح!', 'success');
+            addToast(employeeData.id ? 'تم التحديث' : 'تم الحفظ', employeeData.id ? 'تم تحديث بيانات الموظف بنجاح.' : 'تمت إضافة الموظف بنجاح.', 'success');
             setShowAddEmployeeModal(false);
             setEmployeeToEdit(null);
         }
@@ -223,11 +219,11 @@ const App: React.FC = () => {
             async () => {
                 const { error } = await supabase.from('employees').delete().eq('id', employee.id);
                 if (error) {
-                    addToast(`خطأ في حذف الموظف: ${error.message}`, 'error');
+                    addToast('خطأ', `فشل حذف الموظف: ${error.message}`, 'error');
                 } else {
                     setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
                     setSelectedEmployee(null);
-                    addToast('تم حذف الموظف بنجاح.', 'success');
+                    addToast('تم الحذف', 'تم حذف الموظف بنجاح.', 'deleted');
                 }
             }
         );
@@ -245,10 +241,10 @@ const App: React.FC = () => {
     const handleAddOfficeContact = async (contactData: Omit<OfficeContact, 'id'>) => {
         const { data, error } = await supabase.from('office_contacts').insert([contactData]).select();
         if (error) {
-            addToast(`خطأ في إضافة المكتب: ${error.message}`, 'error');
+            addToast('خطأ', `فشل إضافة المكتب: ${error.message}`, 'error');
         } else if (data) {
             setOfficeContacts(prev => [...prev, data[0]].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
-            addToast(`تمت إضافة مكتب "${data[0].name}" بنجاح.`, 'success');
+            addToast('تم الحفظ', `تمت إضافة مكتب "${data[0].name}" بنجاح.`, 'success');
             setShowAddOfficeContactModal(false);
         }
     };
@@ -256,10 +252,10 @@ const App: React.FC = () => {
     const handleUpdateOfficeContact = async (contactData: OfficeContact) => {
         const { data, error } = await supabase.from('office_contacts').update(contactData).eq('id', contactData.id).select();
         if (error) {
-            addToast(`خطأ في تحديث المكتب: ${error.message}`, 'error');
+            addToast('خطأ', `فشل تحديث المكتب: ${error.message}`, 'error');
         } else if (data) {
             setOfficeContacts(prev => prev.map(c => (c.id === data[0].id ? data[0] : c)));
-            addToast(`تم تحديث بيانات مكتب "${data[0].name}" بنجاح.`, 'success');
+            addToast('تم التحديث', `تم تحديث بيانات مكتب "${data[0].name}" بنجاح.`, 'success');
             setContactToEdit(null);
         }
     };
@@ -271,10 +267,10 @@ const App: React.FC = () => {
             async () => {
                 const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
                 if (error) {
-                    addToast(`خطأ في حذف التحويلة: ${error.message}`, 'error');
+                    addToast('خطأ', `فشل حذف التحويلة: ${error.message}`, 'error');
                 } else {
                     setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
-                    addToast('تم حذف التحويلة بنجاح.', 'success');
+                    addToast('تم الحذف', 'تم حذف التحويلة بنجاح.', 'deleted');
                 }
             }
         );
@@ -284,14 +280,14 @@ const App: React.FC = () => {
     const handleSaveTask = async (taskData: Omit<Task, 'id'> & { id?: number }) => {
         const { data, error } = await supabase.from('tasks').upsert(taskData).select();
         if (error) {
-            addToast(`خطأ في حفظ المهمة: ${error.message}`, 'error');
+            addToast('خطأ', `فشل حفظ المهمة: ${error.message}`, 'error');
         } else if (data) {
             if (taskData.id) {
                 setTasks(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
             } else {
                 setTasks(prev => [...prev, data[0]]);
             }
-            addToast(taskData.id ? 'تم تحديث المهمة بنجاح!' : 'تمت إضافة المهمة بنجاح!', 'success');
+            addToast(taskData.id ? 'تم التحديث' : 'تم الحفظ', taskData.id ? 'تم تحديث المهمة بنجاح!' : 'تمت إضافة المهمة بنجاح!', 'success');
             setShowAddTaskModal(false);
             setTaskToEdit(null);
         }
@@ -304,10 +300,10 @@ const App: React.FC = () => {
             async () => {
                 const { error } = await supabase.from('tasks').delete().eq('id', task.id);
                 if (error) {
-                    addToast(`خطأ في حذف المهمة: ${error.message}`, 'error');
+                    addToast('خطأ', `فشل حذف المهمة: ${error.message}`, 'error');
                 } else {
                     setTasks(prev => prev.filter(t => t.id !== task.id));
-                    addToast('تم حذف المهمة.', 'success');
+                    addToast('تم الحذف', 'تم حذف المهمة.', 'deleted');
                 }
             }
         );
@@ -319,9 +315,12 @@ const App: React.FC = () => {
         
         const { error } = await supabase.from('tasks').update({ is_completed: !taskToToggle.is_completed }).eq('id', taskId);
         if (error) {
-            addToast(`خطأ في تحديث حالة المهمة: ${error.message}`, 'error');
+            addToast('خطأ', `فشل تحديث حالة المهمة: ${error.message}`, 'error');
         } else {
             setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, is_completed: !t.is_completed } : t)));
+            if (!taskToToggle.is_completed) { // If it was false, it's now true
+                addToast('اكتملت المهمة', `"${taskToToggle.title}"`, 'success');
+            }
         }
     };
     
@@ -339,14 +338,14 @@ const App: React.FC = () => {
     const handleSaveTransaction = async (transactionData: Omit<Transaction, 'id'> & { id?: number }) => {
         const { data, error } = await supabase.from('transactions').upsert(transactionData).select();
         if (error) {
-             addToast(`خطأ في حفظ المعاملة: ${error.message}`, 'error');
+             addToast('خطأ', `فشل حفظ المعاملة: ${error.message}`, 'error');
         } else if (data) {
             if (transactionData.id) {
                 setTransactions(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
             } else {
                 setTransactions(prev => [...prev, data[0]]);
             }
-            addToast(transactionData.id ? 'تم تحديث المعاملة بنجاح!' : 'تمت إضافة المعاملة بنجاح!', 'success');
+            addToast(transactionData.id ? 'تم التحديث' : 'تم الحفظ', transactionData.id ? 'تم تحديث المعاملة بنجاح!' : 'تمت إضافة المعاملة بنجاح!', 'success');
             setShowAddTransactionModal(false);
             setTransactionToEdit(null);
         }
@@ -359,11 +358,11 @@ const App: React.FC = () => {
             async () => {
                 const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
                 if(error) {
-                    addToast(`خطأ في حذف المعاملة: ${error.message}`, 'error');
+                    addToast('خطأ', `فشل حذف المعاملة: ${error.message}`, 'error');
                 } else {
                     setTransactions(prev => prev.filter(t => t.id !== transaction.id));
                     setSelectedTransaction(null);
-                    addToast('تم حذف المعاملة.', 'success');
+                    addToast('تم الحذف', 'تم حذف المعاملة.', 'deleted');
                 }
             }
         );
@@ -459,7 +458,7 @@ const App: React.FC = () => {
 
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             if (error) {
-                addToast(error, 'error');
+                addToast('خطأ في الاستيراد', error, 'error');
                 setIsImporting(false);
                 return;
             }
@@ -484,7 +483,7 @@ const App: React.FC = () => {
 
             const ignoredRowsCount = data.length - validData.length;
             if (ignoredRowsCount > 0) {
-                addToast(`تم تجاهل ${ignoredRowsCount} صفًا لعدم احتوائها على رقم وظيفي أو لكونها ترويسات متكررة.`, 'info');
+                addToast('معلومات', `تم تجاهل ${ignoredRowsCount} صفًا لعدم احتوائها على رقم وظيفي أو لكونها ترويسات متكررة.`, 'info');
             }
 
             // Deduplicate data from the file based on employee_id, keeping the last entry.
@@ -499,12 +498,12 @@ const App: React.FC = () => {
             const duplicateCount = validData.length - deduplicatedData.length;
 
             if (duplicateCount > 0) {
-                addToast(`تم دمج ${duplicateCount} سجلًا مكررًا من الملف. سيتم استخدام أحدث البيانات لكل موظف.`, 'info');
+                addToast('معلومات', `تم دمج ${duplicateCount} سجلًا مكررًا من الملف. سيتم استخدام أحدث البيانات لكل موظف.`, 'info');
             }
 
             if (deduplicatedData.length === 0) {
                  if (ignoredRowsCount === 0) {
-                    addToast('لم يتم العثور على بيانات صالحة للاستيراد.', 'error');
+                    addToast('خطأ', 'لم يتم العثور على بيانات صالحة للاستيراد.', 'error');
                 }
                 setIsImporting(false);
                 return;
@@ -543,15 +542,15 @@ const App: React.FC = () => {
             });
             
             if (invalidGenderCount > 0) {
-                 addToast(`تم تجاهل بيانات "الجنس" لـ ${invalidGenderCount} موظفًا لأنها تتجاوز الحد المسموح به.`, 'warning');
+                 addToast('تحذير', `تم تجاهل بيانات "الجنس" لـ ${invalidGenderCount} موظفًا لأنها تتجاوز الحد المسموح به.`, 'warning');
             }
 
             const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
             setIsImporting(false);
             if (upsertError) {
-                addToast(`خطأ في استيراد الموظفين: ${upsertError.message}`, 'error');
+                addToast('خطأ', `فشل استيراد الموظفين: ${upsertError.message}`, 'error');
             } else {
-                addToast(`تم استيراد وتحديث ${deduplicatedData.length} موظف بنجاح!`, 'success');
+                addToast('تم الاستيراد', `تم استيراد وتحديث ${deduplicatedData.length} موظف بنجاح!`, 'info');
                 const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*').order('full_name_ar', { ascending: true });
                 if (!employeesError) setEmployees(employeesData || []);
             }
@@ -560,7 +559,7 @@ const App: React.FC = () => {
 
     const handleExportEmployees = () => {
         if (filteredEmployees.length === 0) {
-            addToast('لا توجد بيانات لتصديرها.', 'warning');
+            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
             return;
         }
         const dataToExport = filteredEmployees.map(({ id, ...rest }) => rest);
@@ -568,7 +567,7 @@ const App: React.FC = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
         XLSX.writeFile(workbook, `employees_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم تصدير الموظفين بنجاح!', 'success');
+        addToast('تم التصدير', 'تم تصدير الموظفين بنجاح!', 'info');
     };
 
     // --- Office Contact Import/Export ---
@@ -579,14 +578,14 @@ const App: React.FC = () => {
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             setIsImporting(false);
             if (error) {
-                addToast(error, 'error');
+                addToast('خطأ في الاستيراد', error, 'error');
                 return;
             }
             const { error: upsertError } = await supabase.from('office_contacts').upsert(data, { onConflict: 'name' });
             if (upsertError) {
-                addToast(`خطأ في استيراد التحويلات: ${upsertError.message}`, 'error');
+                addToast('خطأ', `فشل استيراد التحويلات: ${upsertError.message}`, 'error');
             } else {
-                addToast(`تم استيراد ${data.length} تحويلة بنجاح!`, 'success');
+                addToast('تم الاستيراد', `تم استيراد ${data.length} تحويلة بنجاح!`, 'info');
                 const { data: contactsData, error: contactsError } = await supabase.from('office_contacts').select('*').order('name', { ascending: true });
                 if (!contactsError) setOfficeContacts(contactsData || []);
             }
@@ -595,7 +594,7 @@ const App: React.FC = () => {
 
     const handleExportOfficeContacts = () => {
         if (officeContacts.length === 0) {
-            addToast('لا توجد بيانات لتصديرها.', 'warning');
+            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
             return;
         }
         const dataToExport = officeContacts.map(({ id, ...rest }) => rest);
@@ -603,7 +602,7 @@ const App: React.FC = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "OfficeContacts");
         XLSX.writeFile(workbook, `office_contacts_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم تصدير التحويلات بنجاح!', 'success');
+        addToast('تم التصدير', 'تم تصدير التحويلات بنجاح!', 'info');
     };
 
     // --- Task Import/Export ---
@@ -614,15 +613,15 @@ const App: React.FC = () => {
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             setIsImporting(false);
             if (error) {
-                addToast(error, 'error');
+                addToast('خطأ في الاستيراد', error, 'error');
                 return;
             }
             const tasksToInsert = data.map(item => ({ ...item, is_completed: ['true', 'yes', '1', 'نعم'].includes(String(item.is_completed).toLowerCase())}));
             const { error: insertError } = await supabase.from('tasks').insert(tasksToInsert);
             if (insertError) {
-                addToast(`خطأ في استيراد المهام: ${insertError.message}`, 'error');
+                addToast('خطأ', `فشل استيراد المهام: ${insertError.message}`, 'error');
             } else {
-                addToast(`تم استيراد ${data.length} مهمة بنجاح!`, 'success');
+                addToast('تم الاستيراد', `تم استيراد ${data.length} مهمة بنجاح!`, 'info');
                 const { data: tasksData, error: tasksError } = await supabase.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false });
                 if (!tasksError) setTasks(tasksData || []);
             }
@@ -631,7 +630,7 @@ const App: React.FC = () => {
 
     const handleExportTasks = () => {
         if (tasks.length === 0) {
-            addToast('لا توجد بيانات لتصديرها.', 'warning');
+            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
             return;
         }
         const dataToExport = tasks.map(({ id, ...rest }) => rest);
@@ -639,7 +638,7 @@ const App: React.FC = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
         XLSX.writeFile(workbook, `tasks_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم تصدير المهام بنجاح!', 'success');
+        addToast('تم التصدير', 'تم تصدير المهام بنجاح!', 'info');
     };
 
     // --- Transaction Import/Export ---
@@ -650,14 +649,14 @@ const App: React.FC = () => {
         parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
             setIsImporting(false);
             if (error) {
-                addToast(error, 'error');
+                addToast('خطأ في الاستيراد', error, 'error');
                 return;
             }
             const { error: upsertError } = await supabase.from('transactions').upsert(data, { onConflict: 'transaction_number' });
             if (upsertError) {
-                addToast(`خطأ في استيراد المعاملات: ${upsertError.message}`, 'error');
+                addToast('خطأ', `فشل استيراد المعاملات: ${upsertError.message}`, 'error');
             } else {
-                addToast(`تم استيراد ${data.length} معاملة بنجاح!`, 'success');
+                addToast('تم الاستيراد', `تم استيراد ${data.length} معاملة بنجاح!`, 'info');
                 const { data: transData, error: transError } = await supabase.from('transactions').select('*').order('date', { ascending: false });
                 if (!transError) setTransactions(transData || []);
             }
@@ -666,7 +665,7 @@ const App: React.FC = () => {
 
     const handleExportTransactions = () => {
         if (transactions.length === 0) {
-            addToast('لا توجد بيانات لتصديرها.', 'warning');
+            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
             return;
         }
         const dataToExport = transactions.map(({ id, attachment, ...rest }) => rest);
@@ -674,7 +673,7 @@ const App: React.FC = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
         XLSX.writeFile(workbook, `transactions_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم تصدير المعاملات بنجاح!', 'success');
+        addToast('تم التصدير', 'تم تصدير المعاملات بنجاح!', 'info');
     };
 
     if (!isAuthenticated) {
@@ -755,7 +754,7 @@ const App: React.FC = () => {
                     allowEditing={allowEditing}
                 />}
 
-                {activeTab === 'statistics' && <StatisticsView employees={employees} />}
+                {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} />}
 
             </main>
             

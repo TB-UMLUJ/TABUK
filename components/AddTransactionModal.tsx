@@ -58,7 +58,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                addToast("حجم الملف كبير جداً. الحجم الأقصى هو 5 ميجابايت.", 'error');
+                addToast("ملف كبير", "حجم الملف كبير جداً. الحجم الأقصى هو 5 ميجابايت.", 'error');
                 e.target.value = ''; // Reset file input
                 return;
             }

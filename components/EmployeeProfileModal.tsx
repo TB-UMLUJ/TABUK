@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Employee } from '../types';
@@ -82,7 +78,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
 
         return (
             <div className="flex items-start gap-4 py-3">
-                <div className="bg-accent-light p-2.5 rounded-lg text-accent-dark mt-1 dark:bg-primary/20 dark:text-primary-light">{icon}</div>
+                <div className="bg-primary/10 p-2.5 rounded-lg text-primary dark:bg-primary/20 dark:text-primary mt-1">{icon}</div>
                 <div>
                     <p className="text-sm text-gray-500 font-medium dark:text-gray-400">{label}</p>
                     <p className="text-base font-bold text-gray-800 dark:text-white break-all">{valueContent}</p>
@@ -122,13 +118,13 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
 
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 mb-6">
                         <div className="text-center flex-shrink-0">
-                             <div className="w-32 h-32 rounded-full bg-primary-light flex-shrink-0 flex items-center justify-center mx-auto border-4 border-gray-200 dark:border-gray-600 dark:bg-gray-700">
-                                <span className="text-5xl font-bold text-primary dark:text-primary-light">{getInitials(employee.full_name_ar || '')}</span>
+                             <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center mx-auto border-4 border-gray-200 dark:border-gray-600">
+                                <span className="text-5xl font-bold text-brand dark:text-brand-light">{getInitials(employee.full_name_ar || '')}</span>
                             </div>
                         </div>
                         <div className="flex-1 text-center md:text-right w-full">
-                            <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-white">{employee.full_name_ar}</h2>
-                            <p className="text-base md:text-lg text-accent-dark font-semibold dark:text-accent-light">{employee.job_title}</p>
+                            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{employee.full_name_ar}</h2>
+                            <p className="text-base md:text-lg text-gray-500 font-semibold dark:text-gray-400">{employee.job_title}</p>
                             <p className="text-sm md:text-base text-gray-400 dark:text-gray-500">{employee.full_name_en}</p>
                             
                             <div className="mt-6 flex items-center justify-center md:justify-end gap-2">
@@ -144,7 +140,7 @@ const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({ isOpen, emp
                                 <button
                                     onClick={handleEmail}
                                     disabled={!isValidEmail(employee.email)}
-                                    className="text-center bg-primary/10 text-primary p-3 rounded-lg hover:bg-primary/20 transition-all duration-200 transform hover:scale-105 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="text-center bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                     aria-label="ارسال بريد إلكتروني"
                                     title="ارسال بريد إلكتروني"
                                 >
