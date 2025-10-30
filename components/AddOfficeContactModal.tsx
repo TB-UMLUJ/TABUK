@@ -2,25 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { OfficeContact } from '../types';
-import { CloseIcon, PhoneIcon } from '../icons/Icons';
+import { CloseIcon, PhoneIcon, PencilIcon } from '../icons/Icons';
 
 interface AddOfficeContactModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (contact: Omit<OfficeContact, 'id'>) => void;
+    onSave: (contact: Omit<OfficeContact, 'id'> & { id?: number }) => void;
+    contactToEdit: OfficeContact | null;
 }
 
-const initialContactState: Omit<OfficeContact, 'id' | 'location' | 'email'> & {location?: string, email?: string} = {
+const initialContactState: Omit<OfficeContact, 'id'> = {
     name: '',
     extension: '',
     location: '',
     email: '',
 };
 
-const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, onClose, onSave }) => {
+const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, onClose, onSave, contactToEdit }) => {
     const [isClosing, setIsClosing] = useState(false);
     const [contactData, setContactData] = useState(initialContactState);
     const [emailError, setEmailError] = useState('');
+
+    const isEditMode = !!contactToEdit;
 
     const validateEmail = (email: string): string => {
         if (!email) return ''; // Optional field
@@ -30,13 +33,21 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
         }
         return '';
     };
-
+    
     useEffect(() => {
-        if (isOpen) {
+        if (contactToEdit) {
+            setContactData({
+                name: contactToEdit.name,
+                extension: contactToEdit.extension,
+                location: contactToEdit.location || '',
+                email: contactToEdit.email || '',
+            });
+            setEmailError(validateEmail(contactToEdit.email || ''));
+        } else {
             setContactData(initialContactState);
             setEmailError('');
         }
-    }, [isOpen]);
+    }, [contactToEdit]);
 
     useEffect(() => {
         if (isOpen) document.body.style.overflow = 'hidden';
@@ -67,8 +78,9 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
             setEmailError(currentEmailError);
             return;
         }
-        const dataToSave = {
+        const dataToSave: Omit<OfficeContact, 'id'> & { id?: number } = {
             ...contactData,
+            id: contactToEdit?.id,
             location: contactData.location || undefined,
             email: contactData.email || undefined
         };
@@ -94,11 +106,15 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
                     
                     <div className="flex items-center gap-4 mb-6">
                         <div className="bg-primary-light p-3 rounded-lg text-primary dark:bg-primary/20 dark:text-primary-light">
-                            <PhoneIcon className="w-8 h-8"/>
+                            {isEditMode ? <PencilIcon className="w-8 h-8" /> : <PhoneIcon className="w-8 h-8"/>}
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-primary dark:text-white">إضافة تحويلة جديدة</h2>
-                            <p className="text-gray-500 dark:text-gray-400">املأ الحقول لإضافة تحويلة مكتب جديدة.</p>
+                            <h2 className="text-2xl font-bold text-primary dark:text-white">
+                                {isEditMode ? 'تعديل بيانات المكتب' : 'إضافة تحويلة جديدة'}
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                {isEditMode ? 'قم بتحديث البيانات المطلوبة.' : 'املأ الحقول لإضافة تحويلة مكتب جديدة.'}
+                            </p>
                         </div>
                     </div>
                     
@@ -134,7 +150,7 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
                                 disabled={!!emailError}
                                 className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                إضافة
+                                {isEditMode ? 'حفظ التغييرات' : 'إضافة'}
                             </button>
                         </div>
                     </form>

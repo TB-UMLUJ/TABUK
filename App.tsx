@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -16,7 +17,6 @@ import AddEmployeeModal from './components/AddEmployeeModal';
 import ImportLoadingModal from './ImportLoadingModal';
 import BottomNavBar from './components/BottomNavBar';
 import OfficeDirectory from './components/OfficeDirectory';
-import EditOfficeContactModal from './EditOfficeContactModal';
 import AddOfficeContactModal from './components/AddOfficeContactModal';
 import TasksView from './components/TasksView';
 import AddTaskModal from './components/AddTaskModal';
@@ -239,37 +239,40 @@ const App: React.FC = () => {
 
     // --- Employee Handlers ---
     const handleSaveEmployee = async (employeeData: Omit<Employee, 'id'> & { id?: number }) => {
+        const isEditing = !!employeeData.id;
         const { data, error } = await supabase.from('employees').upsert(employeeData).select();
 
         if (error) {
             addToast('خطأ', `فشل حفظ الموظف: ${error.message}`, 'error');
         } else if (data) {
-            if (employeeData.id) {
+            if (isEditing) {
                 setEmployees(prev => prev.map(emp => (emp.id === data[0].id ? data[0] : emp)));
             } else {
                 setEmployees(prev => [...prev, data[0]]);
             }
-            addToast('نجاح', `تم ${employeeData.id ? 'تحديث' : 'إضافة'} الموظف بنجاح.`, 'success');
+            addToast('نجاح', `تم ${isEditing ? 'تحديث' : 'إضافة'} الموظف بنجاح.`, 'success');
             setShowAddEmployeeModal(false);
             setEmployeeToEdit(null);
         }
     };
 
     const handleDeleteEmployee = async (employee: Employee) => {
-        requestConfirmation(
-            'تأكيد الحذف',
-            `هل أنت متأكد من رغبتك في حذف الموظف "${employee.full_name_ar}"؟ لا يمكن التراجع عن هذا الإجراء.`,
-            async () => {
-                const { error } = await supabase.from('employees').delete().eq('id', employee.id);
-                if (error) {
-                    addToast('خطأ', `فشل حذف الموظف: ${error.message}`, 'error');
-                } else {
-                    setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
-                    addToast('تم الحذف', 'تم حذف الموظف بنجاح.', 'deleted');
+        requestAdminPermission(() => {
+            requestConfirmation(
+                'تأكيد الحذف',
+                `هل أنت متأكد من رغبتك في حذف الموظف "${employee.full_name_ar}"؟ لا يمكن التراجع عن هذا الإجراء.`,
+                async () => {
+                    const { error } = await supabase.from('employees').delete().eq('id', employee.id);
+                    if (error) {
+                        addToast('خطأ', `فشل حذف الموظف: ${error.message}`, 'error');
+                    } else {
+                        setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
+                        addToast('تم الحذف', 'تم حذف الموظف بنجاح.', 'deleted');
+                    }
+                    setSelectedEmployee(null); // Close profile modal after deletion
                 }
-                setSelectedEmployee(null); // Close profile modal after deletion
-            }
-        );
+            );
+        });
     };
 
     const handleImportEmployees = (file: File) => {
@@ -324,57 +327,62 @@ const App: React.FC = () => {
     };
     
     const handleExportEmployees = () => {
-        const dataToExport = filteredEmployees.map(emp => ({
-            'الرقم الوظيفي': emp.employee_id,
-            'الاسم باللغة العربية': emp.full_name_ar,
-            'الاسم باللغة الإنجليزية': emp.full_name_en,
-            'المسمى الوظيفي': emp.job_title,
-            'القطاع': emp.department,
-            'المركز': emp.center,
-            'رقم الجوال': emp.phone_direct,
-            'البريد الإلكتروني': emp.email,
-            'السجل المدني / الإقامة': emp.national_id,
-            'الجنسية': emp.nationality,
-            'الجنس': emp.gender,
-            'تاريخ الميلاد': emp.date_of_birth ? new Date(emp.date_of_birth).toLocaleDateString('ar-SA') : '',
-            'رقم التصنيف': emp.classification_id
-        }));
-        
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'الموظفين');
-        XLSX.writeFile(workbook, 'employees_export.xlsx');
-        addToast('تم التصدير', 'تم تصدير بيانات الموظفين بنجاح.', 'success');
+        requestAdminPermission(() => {
+            const dataToExport = filteredEmployees.map(emp => ({
+                'الرقم الوظيفي': emp.employee_id,
+                'الاسم باللغة العربية': emp.full_name_ar,
+                'الاسم باللغة الإنجليزية': emp.full_name_en,
+                'المسمى الوظيفي': emp.job_title,
+                'القطاع': emp.department,
+                'المركز': emp.center,
+                'رقم الجوال': emp.phone_direct,
+                'البريد الإلكتروني': emp.email,
+                'السجل المدني / الإقامة': emp.national_id,
+                'الجنسية': emp.nationality,
+                'الجنس': emp.gender,
+                'تاريخ الميلاد': emp.date_of_birth ? new Date(emp.date_of_birth).toLocaleDateString('ar-SA') : '',
+                'رقم التصنيف': emp.classification_id
+            }));
+            
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'الموظفين');
+            XLSX.writeFile(workbook, 'employees_export.xlsx');
+            addToast('تم التصدير', 'تم تصدير بيانات الموظفين بنجاح.', 'success');
+        });
     };
 
 
     // --- Office Contact Handlers ---
     const handleSaveOfficeContact = async (contactData: Omit<OfficeContact, 'id'> & { id?: number }) => {
+        const isEditing = !!contactData.id;
         const { data, error } = await supabase.from('office_contacts').upsert(contactData).select();
         
         if (error) {
             addToast('خطأ', `فشل حفظ جهة الاتصال: ${error.message}`, 'error');
         } else if (data) {
-             if (contactData.id) { // Editing
+             if (isEditing) {
                 setOfficeContacts(prev => prev.map(c => c.id === data[0].id ? data[0] : c));
-            } else { // Adding
+            } else {
                 setOfficeContacts(prev => [...prev, data[0]]);
             }
-            addToast('نجاح', `تم ${contactData.id ? 'تحديث' : 'إضافة'} جهة الاتصال بنجاح.`, 'success');
+            addToast('نجاح', `تم ${isEditing ? 'تحديث' : 'إضافة'} جهة الاتصال بنجاح.`, 'success');
             setShowAddOfficeContactModal(false);
             setContactToEdit(null);
         }
     };
 
     const handleDeleteOfficeContact = async (contact: OfficeContact) => {
-        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف "${contact.name}"؟`, async () => {
-            const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
-            if (error) {
-                addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
-            } else {
-                setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
-                addToast('تم الحذف', 'تم حذف جهة الاتصال بنجاح.', 'deleted');
-            }
+        requestAdminPermission(() => {
+            requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف "${contact.name}"؟`, async () => {
+                const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
+                if (error) {
+                    addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
+                } else {
+                    setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
+                    addToast('تم الحذف', 'تم حذف جهة الاتصال بنجاح.', 'deleted');
+                }
+            });
         });
     };
     
@@ -419,46 +427,51 @@ const App: React.FC = () => {
     };
 
     const handleExportOfficeContacts = () => {
-        const dataToExport = officeContacts.map(c => ({
-            'اسم المكتب': c.name,
-            'التحويلة': c.extension,
-            'الموقع': c.location,
-            'البريد الإلكتروني': c.email
-        }));
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'تحويلات المكاتب');
-        XLSX.writeFile(workbook, 'office_contacts_export.xlsx');
-        addToast('تم التصدير', 'تم تصدير تحويلات المكاتب بنجاح.', 'success');
+        requestAdminPermission(() => {
+            const dataToExport = officeContacts.map(c => ({
+                'اسم المكتب': c.name,
+                'التحويلة': c.extension,
+                'الموقع': c.location,
+                'البريد الإلكتروني': c.email
+            }));
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'تحويلات المكاتب');
+            XLSX.writeFile(workbook, 'office_contacts_export.xlsx');
+            addToast('تم التصدير', 'تم تصدير تحويلات المكاتب بنجاح.', 'success');
+        });
     };
 
 
     // --- Task Handlers ---
     const handleSaveTask = async (taskData: Omit<Task, 'id'> & { id?: number }) => {
+        const isEditing = !!taskData.id;
         const { data, error } = await supabase.from('tasks').upsert(taskData).select();
         if (error) {
             addToast('خطأ', `فشل حفظ المهمة: ${error.message}`, 'error');
         } else if (data) {
-            if (taskData.id) {
+            if (isEditing) {
                 setTasks(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
             } else {
                 setTasks(prev => [...prev, data[0]]);
             }
-            addToast('نجاح', `تم ${taskData.id ? 'تحديث' : 'إضافة'} المهمة بنجاح.`, 'success');
+            addToast('نجاح', `تم ${isEditing ? 'تحديث' : 'إضافة'} المهمة بنجاح.`, 'success');
             setShowAddTaskModal(false);
             setTaskToEdit(null);
         }
     };
     
     const handleDeleteTask = (task: Task) => {
-        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف مهمة "${task.title}"؟`, async () => {
-            const { error } = await supabase.from('tasks').delete().eq('id', task.id);
-            if (error) {
-                addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
-            } else {
-                setTasks(prev => prev.filter(t => t.id !== task.id));
-                addToast('تم الحذف', 'تم حذف المهمة بنجاح.', 'deleted');
-            }
+        requestAdminPermission(() => {
+            requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف مهمة "${task.title}"؟`, async () => {
+                const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+                if (error) {
+                    addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
+                } else {
+                    setTasks(prev => prev.filter(t => t.id !== task.id));
+                    addToast('تم الحذف', 'تم حذف المهمة بنجاح.', 'deleted');
+                }
+            });
         });
     };
     
@@ -477,31 +490,34 @@ const App: React.FC = () => {
 
     // --- Transaction Handlers ---
     const handleSaveTransaction = async (transactionData: Omit<Transaction, 'id'> & { id?: number }) => {
+        const isEditing = !!transactionData.id;
         const { data, error } = await supabase.from('transactions').upsert(transactionData).select();
         if (error) {
             addToast('خطأ', `فشل حفظ المعاملة: ${error.message}`, 'error');
         } else if (data) {
-            if (transactionData.id) {
+            if (isEditing) {
                 setTransactions(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
             } else {
                 setTransactions(prev => [...prev, data[0]]);
             }
-            addToast('نجاح', `تم ${transactionData.id ? 'تحديث' : 'إضافة'} المعاملة بنجاح.`, 'success');
+            addToast('نجاح', `تم ${isEditing ? 'تحديث' : 'إضافة'} المعاملة بنجاح.`, 'success');
             setShowAddTransactionModal(false);
             setTransactionToEdit(null);
         }
     };
     
     const handleDeleteTransaction = (transaction: Transaction) => {
-        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف المعاملة رقم "${transaction.transaction_number}"؟`, async () => {
-            const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
-            if (error) {
-                addToast('خطأ', `فشل حذف المعاملة: ${error.message}`, 'error');
-            } else {
-                setTransactions(prev => prev.filter(t => t.id !== transaction.id));
-                addToast('تم الحذف', 'تم حذف المعاملة بنجاح.', 'deleted');
-            }
-             setSelectedTransaction(null); // Close detail modal
+        requestAdminPermission(() => {
+            requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف المعاملة رقم "${transaction.transaction_number}"؟`, async () => {
+                const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
+                if (error) {
+                    addToast('خطأ', `فشل حذف المعاملة: ${error.message}`, 'error');
+                } else {
+                    setTransactions(prev => prev.filter(t => t.id !== transaction.id));
+                    addToast('تم الحذف', 'تم حذف المعاملة بنجاح.', 'deleted');
+                }
+                 setSelectedTransaction(null); // Close detail modal
+            });
         });
     };
     
@@ -564,8 +580,10 @@ const App: React.FC = () => {
                                     setSearchTerm={setSearchTerm}
                                     onImportClick={() => requestAdminPermission(handleGenericImport)}
                                     onAddEmployeeClick={() => {
-                                        setEmployeeToEdit(null);
-                                        setShowAddEmployeeModal(true);
+                                        requestAdminPermission(() => {
+                                            setEmployeeToEdit(null);
+                                            setShowAddEmployeeModal(true);
+                                        });
                                     }}
                                     onExportClick={handleExportEmployees}
                                 />
@@ -582,8 +600,18 @@ const App: React.FC = () => {
                         {activeTab === 'officeDirectory' && (
                             <OfficeDirectory
                                 contacts={officeContacts}
-                                onAddContact={() => setShowAddOfficeContactModal(true)}
-                                onEditContact={setContactToEdit}
+                                onAddContact={() => {
+                                    requestAdminPermission(() => {
+                                        setContactToEdit(null);
+                                        setShowAddOfficeContactModal(true);
+                                    });
+                                }}
+                                onEditContact={(contact) => {
+                                    requestAdminPermission(() => {
+                                        setContactToEdit(contact);
+                                        setShowAddOfficeContactModal(true);
+                                    });
+                                }}
                                 onDeleteContact={handleDeleteOfficeContact}
                                 onImportClick={() => requestAdminPermission(handleGenericImport)}
                                 onExportClick={handleExportOfficeContacts}
@@ -592,8 +620,18 @@ const App: React.FC = () => {
                          {activeTab === 'tasks' && (
                             <TasksView 
                                 tasks={tasks}
-                                onAddTask={() => { setTaskToEdit(null); setShowAddTaskModal(true); }}
-                                onEditTask={(task) => { setTaskToEdit(task); setShowAddTaskModal(true); }}
+                                onAddTask={() => {
+                                    requestAdminPermission(() => {
+                                        setTaskToEdit(null);
+                                        setShowAddTaskModal(true);
+                                    });
+                                }}
+                                onEditTask={(task) => {
+                                    requestAdminPermission(() => {
+                                        setTaskToEdit(task);
+                                        setShowAddTaskModal(true);
+                                    });
+                                }}
                                 onDeleteTask={handleDeleteTask}
                                 onToggleComplete={handleToggleTaskComplete}
                                 onImportClick={() => addToast('غير متوفر', 'استيراد المهام غير مدعوم حاليًا.', 'info')}
@@ -603,8 +641,18 @@ const App: React.FC = () => {
                          {activeTab === 'transactions' && (
                             <TransactionsView
                                 transactions={transactions}
-                                onAddTransaction={() => { setTransactionToEdit(null); setShowAddTransactionModal(true); }}
-                                onEditTransaction={(t) => { setTransactionToEdit(t); setShowAddTransactionModal(true); }}
+                                onAddTransaction={() => {
+                                    requestAdminPermission(() => {
+                                        setTransactionToEdit(null);
+                                        setShowAddTransactionModal(true);
+                                    });
+                                }}
+                                onEditTransaction={(t) => {
+                                    requestAdminPermission(() => {
+                                        setTransactionToEdit(t);
+                                        setShowAddTransactionModal(true);
+                                    });
+                                }}
                                 onDeleteTransaction={handleDeleteTransaction}
                                 onSelectTransaction={setSelectedTransaction}
                                 onImportClick={() => addToast('غير متوفر', 'استيراد المعاملات غير مدعوم حاليًا.', 'info')}
@@ -636,11 +684,13 @@ const App: React.FC = () => {
                     employee={selectedEmployee}
                     onClose={() => setSelectedEmployee(null)}
                     onEdit={(emp) => {
-                        setSelectedEmployee(null); // Close profile modal
-                        setTimeout(() => { // Open edit modal after a short delay for smooth transition
-                            setEmployeeToEdit(emp);
-                            setShowAddEmployeeModal(true);
-                        }, 100);
+                        requestAdminPermission(() => {
+                            setSelectedEmployee(null);
+                            setTimeout(() => {
+                                setEmployeeToEdit(emp);
+                                setShowAddEmployeeModal(true);
+                            }, 100);
+                        });
                     }}
                     onDelete={handleDeleteEmployee}
                 />
@@ -658,20 +708,17 @@ const App: React.FC = () => {
                 />
             )}
 
-            {contactToEdit && (
-                <EditOfficeContactModal 
-                    isOpen={!!contactToEdit}
-                    onClose={() => setContactToEdit(null)}
+            {(showAddOfficeContactModal || contactToEdit) && (
+                <AddOfficeContactModal
+                    isOpen={showAddOfficeContactModal || !!contactToEdit}
+                    onClose={() => {
+                        setShowAddOfficeContactModal(false);
+                        setContactToEdit(null);
+                    }}
                     onSave={handleSaveOfficeContact}
                     contactToEdit={contactToEdit}
                 />
             )}
-            
-            <AddOfficeContactModal
-                isOpen={showAddOfficeContactModal}
-                onClose={() => setShowAddOfficeContactModal(false)}
-                onSave={handleSaveOfficeContact}
-            />
 
              {(showAddTaskModal || taskToEdit) && (
                  <AddTaskModal
@@ -697,11 +744,13 @@ const App: React.FC = () => {
                     transaction={selectedTransaction}
                     onClose={() => setSelectedTransaction(null)}
                     onEdit={(t) => {
-                        setSelectedTransaction(null);
-                        setTimeout(() => {
-                           setTransactionToEdit(t);
-                           setShowAddTransactionModal(true);
-                        }, 100);
+                        requestAdminPermission(() => {
+                            setSelectedTransaction(null);
+                            setTimeout(() => {
+                               setTransactionToEdit(t);
+                               setShowAddTransactionModal(true);
+                            }, 100);
+                        });
                     }}
                     onDelete={handleDeleteTransaction}
                 />
