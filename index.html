@@ -7,7 +7,7 @@
     <link rel="icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png" type="image/png">
     <link rel="apple-touch-icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#212B36">
+    <meta name="theme-color" content="#008755">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,22 +23,22 @@
               tajawal: ['Tajawal', 'sans-serif'],
             },
             colors: {
-              primary: { // Green
-                DEFAULT: '#00A76F',
-                light: '#E5F6F1',
-                dark: '#007A4D'
+              primary: { // Green from Ministry of Health brand guide
+                DEFAULT: '#008755',
+                light: '#E6F3EE',
+                dark: '#006640'
               },
-              accent: { // Beige
-                DEFAULT: '#F3E9DD',
-                light: '#FBF6F1',
-                dark: '#D4C0A9'
+              accent: { // Khaki from Ministry of Health brand guide
+                light: '#E2E1D2',   // Lighter tint (30%)
+                DEFAULT: '#9b945f', // Main Khaki color
+                dark: '#B5B197'     // Darker tint (75%)
               },
-              brand: { // Blue
-                DEFAULT: '#00B8D9',
-                light: '#E5F8FB',
-                dark: '#008399'
+              brand: { // Blue from Ministry of Health brand guide secondary palette
+                DEFAULT: '#009ACE',
+                light: '#E5F5FF',
+                dark: '#0076A2'
               },
-              danger: '#C8102E',
+              danger: '#C8102E', // Red from Ministry of Health brand guide secondary palette
               gray: {
                 50: '#F7F9FA',
                 100: '#EFF2F3',
@@ -85,6 +85,13 @@
       }
       .animate-fade-in {
         animation: fadeIn 0.5s ease-out forwards;
+      }
+      @keyframes tab-content-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-tab-content-in {
+        animation: tab-content-in 0.4s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
       }
        @keyframes fadeOut {
         from { opacity: 1; }

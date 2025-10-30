@@ -571,7 +571,7 @@ const App: React.FC = () => {
                  )}
 
                  {!loading && (
-                    <>
+                    <div key={activeTab} className="animate-tab-content-in">
                         {activeTab === 'directory' && (
                             <>
                                 <SearchAndFilter
@@ -660,7 +660,7 @@ const App: React.FC = () => {
                             />
                          )}
                          {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} />}
-                    </>
+                    </div>
                  )}
             </main>
 

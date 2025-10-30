@@ -1,5 +1,5 @@
 
-import React, { useState, Fragment } from 'react';
+import React, { useState } from 'react';
 import { ChevronDownIcon } from '../icons/Icons';
 
 // --- Data Structure for the Organizational Chart (re-structured for a tree view) ---
@@ -191,54 +191,107 @@ const treeData: TreeNodeData = {
     ]
 };
 
-const TreeNode: React.FC<{ node: TreeNodeData; isRoot?: boolean; isLast?: boolean }> = ({ node, isRoot = false, isLast = false }) => {
-    const [isOpen, setIsOpen] = useState(isRoot);
+interface TreeNodeProps {
+    node: TreeNodeData;
+    level?: number;
+    isLast?: boolean;
+}
+
+const levelStyles = [
+    // Level 0: Root (مدير المستشفى)
+    {
+        container: 'bg-primary rounded-lg shadow-lg text-white my-2',
+        text: 'text-xl',
+        englishText: 'text-white opacity-80',
+        chevron: 'text-white'
+    },
+    // Level 1: Main Departments (e.g., التمريض)
+    {
+        container: 'bg-accent-light dark:bg-gray-700 border-r-8 border-accent-dark dark:border-accent rounded-r-lg my-3 shadow',
+        text: 'text-gray-800 dark:text-white font-semibold',
+        englishText: 'text-accent-dark dark:text-accent',
+        chevron: 'text-accent-dark dark:text-accent'
+    },
+    // Level 2: Sub-departments (e.g., الجودة التمريضية)
+    {
+        container: 'bg-brand-light dark:bg-gray-800 border-r-4 border-brand dark:border-brand-light my-2',
+        text: 'text-brand-dark dark:text-brand-light font-medium',
+        englishText: 'text-gray-500 dark:text-gray-400',
+        chevron: 'text-brand-dark dark:text-brand-light'
+    },
+    // Level 3 and deeper
+    {
+        container: 'bg-gray-100 dark:bg-gray-900/50 border-r-2 border-gray-300 dark:border-gray-600 my-1.5',
+        text: 'text-gray-700 dark:text-gray-300',
+        englishText: 'text-gray-500 dark:text-gray-400',
+        chevron: 'text-gray-500 dark:text-gray-400'
+    }
+];
+
+
+const TreeNode: React.FC<TreeNodeProps> = ({ node, level = 0, isLast = false }) => {
+    const [isOpen, setIsOpen] = useState(level === 0);
     const hasChildren = node.children && node.children.length > 0;
+
+    const style = levelStyles[Math.min(level, levelStyles.length - 1)];
 
     const toggle = () => {
         if (hasChildren) {
             setIsOpen(!isOpen);
         }
     };
-
+    
     return (
-        <div className={`relative ${isRoot ? '' : 'pr-8'}`}>
+        <div className="relative">
             {/* Connector Lines */}
-            {!isRoot && (
-                <Fragment>
-                    {/* Horizontal line */}
-                    <span className="absolute top-7 -right-4 w-4 h-px bg-gray-300 dark:bg-gray-600"></span>
-                    {/* Vertical line */}
-                    {!isLast && <span className="absolute top-7 -right-4 w-px h-full bg-gray-300 dark:bg-gray-600"></span>}
-                </Fragment>
-            )}
-
-            <div
-                className={`flex items-center gap-2 p-3 rounded-lg ${
-                    hasChildren ? 'cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700' : 'cursor-default'
-                }`}
-                onClick={toggle}
-            >
-                {hasChildren && (
-                    <ChevronDownIcon
-                        className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`}
+            {level > 0 && (
+                <>
+                    {/* Vertical line segment */}
+                    <span
+                        className={`absolute top-0 right-4 w-px bg-gray-300 dark:bg-gray-600 ${isLast ? 'h-9' : 'h-full'}`}
                     />
-                )}
-                {!hasChildren && <div className="flex-shrink-0 w-5 ml-2"></div> /* Spacer */}
-                
-                <div className="flex-1">
-                    <p className={`font-bold ${isRoot ? 'text-xl text-primary dark:text-primary-light' : 'text-gray-800 dark:text-white'}`}>{node.name}</p>
-                    <p className={`text-sm ${isRoot ? 'text-gray-600 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}>{node.englishName}</p>
-                </div>
-            </div>
-
-            {hasChildren && isOpen && (
-                <div className="mt-2">
-                    {node.children?.map((child, index) => (
-                        <TreeNode key={index} node={child} isLast={index === node.children!.length - 1} />
-                    ))}
-                </div>
+                    {/* Horizontal line segment (the "branch") */}
+                    <span className="absolute top-9 right-4 w-4 h-px bg-gray-300 dark:bg-gray-600" />
+                </>
             )}
+
+            {/* Container for the card and its children, indented from the lines */}
+            <div className={level > 0 ? 'pr-8' : ''}>
+                {/* The card itself */}
+                <div
+                    className={`flex items-center ${style.container} ${hasChildren ? 'cursor-pointer' : ''}`}
+                    onClick={toggle}
+                    role="button"
+                    aria-expanded={isOpen}
+                >
+                    <div className="p-3 flex items-center justify-center">
+                         {hasChildren ? (
+                            <ChevronDownIcon
+                                className={`w-6 h-6 flex-shrink-0 transition-transform duration-300 ${style.chevron} ${isOpen ? 'rotate-0' : '-rotate-90'}`}
+                            />
+                        ) : <div className="w-6 h-6 flex-shrink-0" />}
+                    </div>
+
+                    <div className="flex-1 py-2 pr-2">
+                        <p className={`font-bold ${style.text}`}>{node.name}</p>
+                        <p className={`text-sm ${style.englishText}`}>{node.englishName}</p>
+                    </div>
+                </div>
+
+                {/* Children are rendered recursively */}
+                {hasChildren && isOpen && (
+                    <div className="mt-2 animate-fade-in">
+                        {node.children?.map((child, index) => (
+                            <TreeNode
+                                key={index}
+                                node={child}
+                                level={level + 1}
+                                isLast={index === node.children!.length - 1}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -246,8 +299,8 @@ const TreeNode: React.FC<{ node: TreeNodeData; isRoot?: boolean; isLast?: boolea
 const OrganizationalChartView: React.FC<{ employees: any[] }> = ({ employees }) => {
     return (
         <div className="mt-6 animate-fade-in pb-24 md:pb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                <TreeNode node={treeData} isRoot />
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+                <TreeNode node={treeData} level={0} isLast />
             </div>
         </div>
     );

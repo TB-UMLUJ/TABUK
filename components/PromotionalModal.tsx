@@ -70,12 +70,16 @@ const PromotionalModal: React.FC<PromotionalModalProps> = ({ isOpen, onClose }) 
                     className="w-28 h-auto mx-auto mb-5"
                 />
 
-                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3 leading-relaxed">
-                    هذا العمل من تطوير إدارة الموارد البشرية بمستشفى أملج العام
+                <h2 className="text-sm sm:text-lg font-bold text-gray-800 dark:text-white mb-4 leading-relaxed">
+                    تطوير إدارة الموارد البشرية بمستشفى أملج
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                    المنصة لا تزال في مرحلة التطوير والتحسين المستمر — نرحب بملاحظاتكم واقتراحاتكم لدعم التطوير وتحسين التجربة
-                </p>
+                
+                <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-lg mb-6">
+                    <p className="text-sm font-semibold text-primary-dark dark:text-primary-light leading-relaxed">
+                        المشروع قيد التطوير للمشاركة بجائزة الابتكار
+                    </p>
+                </div>
+
 
                 <div className="flex items-center justify-center">
                     <input
