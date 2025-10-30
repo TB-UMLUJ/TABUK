@@ -1,15 +1,15 @@
 {
-  "short_name": "تجمع تبوك الصحي",
-  "name": "تجمع تبوك الصحي",
+  "short_name": "HEALTH",
+  "name": "HEALTH",
   "description": "منصة ذكية موحدة لتجمع تبوك الصحي، تُمكّن من الوصول السريع إلى بيانات الموظفين وتحويلات المكاتب والمعاملات والتذكيرات، بما يعزز كفاءة التواصل والتنظيم الإداري.",
   "icons": [
     {
-      "src": "https://c.top4top.io/p_35899m4de1.png",
+      "src": "https://g.top4top.io/p_3590cc6x71.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://c.top4top.io/p_35899m4de1.png",
+      "src": "https://g.top4top.io/p_3590cc6x71.png",
       "type": "image/png",
       "sizes": "512x512"
     }
