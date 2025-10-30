@@ -51,6 +51,16 @@ const FormInput: React.FC<FormInputProps> = ({ label, name, required = false, ty
 const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, onSave, employeeToEdit }) => {
     const [isClosing, setIsClosing] = useState(false);
     const [employeeData, setEmployeeData] = useState(initialEmployeeState);
+    const [emailError, setEmailError] = useState('');
+
+    const validateEmail = (email: string): string => {
+        if (!email) return ''; // Optional field, so empty is valid
+        const emailRegex = /^[^\s@]+@moh\.gov\.sa$/i;
+        if (!emailRegex.test(email.toLowerCase())) {
+            return 'يجب أن يكون البريد الإلكتروني صالحًا وينتهي بـ @moh.gov.sa';
+        }
+        return '';
+    };
 
     // Effect to populate form data based on employeeToEdit prop
     useEffect(() => {
@@ -61,9 +71,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                 ...employeeToEdit,
                 date_of_birth: employeeToEdit.date_of_birth ? new Date(employeeToEdit.date_of_birth).toISOString().split('T')[0] : '',
             });
+            setEmailError(validateEmail(employeeToEdit.email || ''));
         } else {
             // Add mode: ensure form is reset
             setEmployeeData(initialEmployeeState);
+            setEmailError('');
         }
     }, [employeeToEdit]);
 
@@ -90,12 +102,21 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        if (name === 'email') {
+            setEmailError(validateEmail(value));
+        }
         setEmployeeData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
+        const currentEmailError = validateEmail(employeeData.email);
+        if (currentEmailError) {
+            setEmailError(currentEmailError);
+            return;
+        }
+
         const dataToSave = { ...employeeData };
 
         // Trim all string values before saving
@@ -165,7 +186,10 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormInput label="رقم الجوال" name="phone_direct" type="tel" value={employeeData.phone_direct} onChange={handleChange} />
-                                <FormInput label="البريد الإلكتروني" name="email" type="email" value={employeeData.email} onChange={handleChange} />
+                                <div>
+                                    <FormInput label="البريد الإلكتروني" name="email" type="email" value={employeeData.email} onChange={handleChange} />
+                                    {emailError && <p className="text-danger text-xs mt-1">{emailError}</p>}
+                                </div>
                             </div>
 
                             <hr className="my-4 dark:border-gray-700" />
@@ -198,7 +222,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                             <button type="button" onClick={handleClose} className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-all duration-200 transform hover:-translate-y-0.5 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                                 إلغاء
                             </button>
-                            <button type="submit" className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:-translate-y-0.5">
+                            <button 
+                                type="submit" 
+                                disabled={!!emailError}
+                                className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 {isEditMode ? 'حفظ التغييرات' : 'حفظ الموظف'}
                             </button>
                         </div>

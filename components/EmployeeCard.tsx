@@ -69,7 +69,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
     return (
         <div 
             onClick={onSelect} 
-            className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group dark:bg-gray-800"
+            className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
         >
              <div className="absolute top-3 left-3">
                  <button
@@ -114,10 +114,14 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
                                </div>
                             )}
                             {employee.email && employee.email.includes('@') && (
-                                <div className="flex items-center gap-1.5 min-w-0">
+                                <a
+                                    href={`mailto:${employee.email}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-1.5 min-w-0 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-colors"
+                                >
                                     <EmailIcon className="w-3.5 h-3.5 flex-shrink-0"/>
                                     <span className="truncate" title={employee.email} dir="ltr">{employee.email}</span>
-                                </div>
+                                </a>
                             )}
                         </div>
                     )}

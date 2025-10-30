@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -10,8 +11,7 @@ import LoginScreen from './components/LoginScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import { useToast } from './contexts/ToastContext';
 import Tabs from './components/Tabs';
-import { useSettings } from './contexts/SettingsContext';
-import Dashboard from './components/Dashboard';
+import OrganizationalChartView from './components/OrganizationalChartView';
 import AddEmployeeModal from './components/AddEmployeeModal';
 import ImportLoadingModal from './ImportLoadingModal';
 import BottomNavBar from './components/BottomNavBar';
@@ -28,13 +28,14 @@ import { mockTasks } from './data/mockTasks';
 import { mockTransactions } from './data/mockTransactions';
 import SettingsScreen from './components/SettingsScreen';
 import StatisticsView from './components/StatisticsView';
+import PromotionalModal from './components/PromotionalModal';
+import AdminPasswordModal from './components/AdminPasswordModal';
 
 
 declare const XLSX: any;
 
 const App: React.FC = () => {
     const { addToast } = useToast();
-    const { showImportExport, allowDeletion, allowEditing } = useSettings();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
         return sessionStorage.getItem('isAuthenticated') === 'true';
     });
@@ -50,7 +51,7 @@ const App: React.FC = () => {
 
     // UI & Filter State
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState<'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('directory');
+    const [activeTab, setActiveTab] = useState<'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('directory');
     const [isImporting, setIsImporting] = useState<boolean>(false);
     const [visibleEmployeeCount, setVisibleEmployeeCount] = useState(10);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -66,6 +67,7 @@ const App: React.FC = () => {
     const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [showPromoModal, setShowPromoModal] = useState<boolean>(false);
     const [confirmation, setConfirmation] = useState<{
         isOpen: boolean;
         title: string;
@@ -78,7 +80,23 @@ const App: React.FC = () => {
         onConfirm: () => {},
     });
     
+    const [adminAction, setAdminAction] = useState<{ isOpen: boolean; onSuccess: () => void; }>({
+        isOpen: false,
+        onSuccess: () => {},
+    });
+    
     const searchAndFilterRef = useRef<SearchAndFilterRef>(null);
+    const genericFileInputRef = useRef<HTMLInputElement>(null);
+    const [importHandler, setImportHandler] = useState<(file: File) => void>(() => () => {});
+
+
+    const requestAdminPermission = (onSuccess: () => void) => {
+        setAdminAction({ isOpen: true, onSuccess });
+    };
+    
+    const closeAdminModal = () => {
+        setAdminAction({ isOpen: false, onSuccess: () => {} });
+    };
 
     const requestConfirmation = (title: string, message: string, onConfirm: () => void) => {
         setConfirmation({ isOpen: true, title, message, onConfirm });
@@ -157,6 +175,20 @@ const App: React.FC = () => {
         setVisibleEmployeeCount(10);
     }, [searchTerm]);
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            const today = new Date().toISOString().slice(0, 10);
+            const dismissedToday = localStorage.getItem('promoModalDismissedToday');
+            
+            if (dismissedToday !== today) {
+                const timer = setTimeout(() => {
+                    setShowPromoModal(true);
+                }, 1500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [isAuthenticated]);
+
     const filteredEmployees = useMemo(() => {
         return employees.filter(employee => {
             if (searchTerm === '') return true;
@@ -215,88 +247,191 @@ const App: React.FC = () => {
             if (employeeData.id) {
                 setEmployees(prev => prev.map(emp => (emp.id === data[0].id ? data[0] : emp)));
             } else {
-                setEmployees(prev => [...prev, data[0]].sort((a, b) => a.full_name_ar.localeCompare(b.full_name_ar, 'ar')));
+                setEmployees(prev => [...prev, data[0]]);
             }
-            addToast(employeeData.id ? 'تم التحديث' : 'تم الحفظ', employeeData.id ? 'تم تحديث بيانات الموظف بنجاح.' : 'تمت إضافة الموظف بنجاح.', 'success');
+            addToast('نجاح', `تم ${employeeData.id ? 'تحديث' : 'إضافة'} الموظف بنجاح.`, 'success');
             setShowAddEmployeeModal(false);
             setEmployeeToEdit(null);
         }
     };
 
-    const handleOpenAddModal = () => {
-        setEmployeeToEdit(null);
-        setShowAddEmployeeModal(true);
-    };
-
-    const handleOpenEditModal = (employee: Employee) => {
-        setSelectedEmployee(null);
-        setEmployeeToEdit(employee);
-        setShowAddEmployeeModal(true);
-    };
-
     const handleDeleteEmployee = async (employee: Employee) => {
         requestConfirmation(
-            `حذف الموظف: ${employee.full_name_ar}`,
-            'هل أنت متأكد من رغبتك في حذف هذا الموظف؟ لا يمكن التراجع عن هذا الإجراء.',
+            'تأكيد الحذف',
+            `هل أنت متأكد من رغبتك في حذف الموظف "${employee.full_name_ar}"؟ لا يمكن التراجع عن هذا الإجراء.`,
             async () => {
                 const { error } = await supabase.from('employees').delete().eq('id', employee.id);
                 if (error) {
                     addToast('خطأ', `فشل حذف الموظف: ${error.message}`, 'error');
                 } else {
                     setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
-                    setSelectedEmployee(null);
                     addToast('تم الحذف', 'تم حذف الموظف بنجاح.', 'deleted');
                 }
+                setSelectedEmployee(null); // Close profile modal after deletion
             }
         );
     };
 
+    const handleImportEmployees = (file: File) => {
+        setIsImporting(true);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+                const newEmployees = json.map((row): Omit<Employee, 'id'> => ({
+                    employee_id: String(row['الرقم الوظيفي'] || ''),
+                    full_name_ar: String(row['الاسم باللغة العربية'] || ''),
+                    full_name_en: String(row['الاسم باللغة الإنجليزية'] || ''),
+                    job_title: String(row['المسمى الوظيفي'] || ''),
+                    department: String(row['القطاع'] || ''),
+                    center: String(row['المركز'] || ''),
+                    phone_direct: String(row['رقم الجوال'] || ''),
+                    email: String(row['البريد الإلكتروني'] || ''),
+                    national_id: String(row['السجل المدني / الإقامة'] || ''),
+                    nationality: String(row['الجنسية'] || ''),
+                    gender: String(row['الجنس'] || ''),
+                    date_of_birth: row['تاريخ الميلاد'] ? new Date((row['تاريخ الميلاد'] - (25567 + 1)) * 86400 * 1000).toISOString() : undefined,
+                    classification_id: String(row['رقم التصنيف'] || ''),
+                }));
+
+                const { data: upsertedData, error } = await supabase.from('employees').upsert(newEmployees, { onConflict: 'employee_id' }).select();
+
+                if (error) throw error;
+                
+                // Merge new data with existing state
+                setEmployees(prev => {
+                    const existingIds = new Set(prev.map(e => e.employee_id));
+                    const trulyNew = upsertedData.filter(e => !existingIds.has(e.employee_id));
+                    const updated = prev.map(e => upsertedData.find(u => u.employee_id === e.employee_id) || e);
+                    return [...updated, ...trulyNew];
+                });
+                
+                addToast('نجاح', `تم استيراد وتحديث ${upsertedData.length} موظف بنجاح.`, 'success');
+
+            } catch (err: any) {
+                console.error("Import error:", err);
+                addToast('خطأ في الاستيراد', 'فشل استيراد الملف. تأكد من أن التنسيق صحيح.', 'error');
+            } finally {
+                setIsImporting(false);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+    
+    const handleExportEmployees = () => {
+        const dataToExport = filteredEmployees.map(emp => ({
+            'الرقم الوظيفي': emp.employee_id,
+            'الاسم باللغة العربية': emp.full_name_ar,
+            'الاسم باللغة الإنجليزية': emp.full_name_en,
+            'المسمى الوظيفي': emp.job_title,
+            'القطاع': emp.department,
+            'المركز': emp.center,
+            'رقم الجوال': emp.phone_direct,
+            'البريد الإلكتروني': emp.email,
+            'السجل المدني / الإقامة': emp.national_id,
+            'الجنسية': emp.nationality,
+            'الجنس': emp.gender,
+            'تاريخ الميلاد': emp.date_of_birth ? new Date(emp.date_of_birth).toLocaleDateString('ar-SA') : '',
+            'رقم التصنيف': emp.classification_id
+        }));
+        
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'الموظفين');
+        XLSX.writeFile(workbook, 'employees_export.xlsx');
+        addToast('تم التصدير', 'تم تصدير بيانات الموظفين بنجاح.', 'success');
+    };
+
+
     // --- Office Contact Handlers ---
-    const handleOpenEditContactModal = (contact: OfficeContact) => {
-        setContactToEdit(contact);
-    };
-
-    const handleOpenAddContactModal = () => {
-        setShowAddOfficeContactModal(true);
-    };
-
-    const handleAddOfficeContact = async (contactData: Omit<OfficeContact, 'id'>) => {
-        const { data, error } = await supabase.from('office_contacts').insert([contactData]).select();
+    const handleSaveOfficeContact = async (contactData: Omit<OfficeContact, 'id'> & { id?: number }) => {
+        const { data, error } = await supabase.from('office_contacts').upsert(contactData).select();
+        
         if (error) {
-            addToast('خطأ', `فشل إضافة المكتب: ${error.message}`, 'error');
+            addToast('خطأ', `فشل حفظ جهة الاتصال: ${error.message}`, 'error');
         } else if (data) {
-            setOfficeContacts(prev => [...prev, data[0]].sort((a,b) => a.name.localeCompare(b.name, 'ar')));
-            addToast('تم الحفظ', `تمت إضافة مكتب "${data[0].name}" بنجاح.`, 'success');
+             if (contactData.id) { // Editing
+                setOfficeContacts(prev => prev.map(c => c.id === data[0].id ? data[0] : c));
+            } else { // Adding
+                setOfficeContacts(prev => [...prev, data[0]]);
+            }
+            addToast('نجاح', `تم ${contactData.id ? 'تحديث' : 'إضافة'} جهة الاتصال بنجاح.`, 'success');
             setShowAddOfficeContactModal(false);
-        }
-    };
-
-    const handleUpdateOfficeContact = async (contactData: OfficeContact) => {
-        const { data, error } = await supabase.from('office_contacts').update(contactData).eq('id', contactData.id).select();
-        if (error) {
-            addToast('خطأ', `فشل تحديث المكتب: ${error.message}`, 'error');
-        } else if (data) {
-            setOfficeContacts(prev => prev.map(c => (c.id === data[0].id ? data[0] : c)));
-            addToast('تم التحديث', `تم تحديث بيانات مكتب "${data[0].name}" بنجاح.`, 'success');
             setContactToEdit(null);
         }
     };
 
     const handleDeleteOfficeContact = async (contact: OfficeContact) => {
-        requestConfirmation(
-            `حذف تحويلة: "${contact.name}"`,
-            'هل أنت متأكد من رغبتك في حذف هذه التحويلة؟ لا يمكن التراجع عن هذا الإجراء.',
-            async () => {
-                const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
-                if (error) {
-                    addToast('خطأ', `فشل حذف التحويلة: ${error.message}`, 'error');
-                } else {
-                    setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
-                    addToast('تم الحذف', 'تم حذف التحويلة بنجاح.', 'deleted');
-                }
+        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف "${contact.name}"؟`, async () => {
+            const { error } = await supabase.from('office_contacts').delete().eq('id', contact.id);
+            if (error) {
+                addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
+            } else {
+                setOfficeContacts(prev => prev.filter(c => c.id !== contact.id));
+                addToast('تم الحذف', 'تم حذف جهة الاتصال بنجاح.', 'deleted');
             }
-        );
+        });
     };
+    
+    const handleImportOfficeContacts = (file: File) => {
+        setIsImporting(true);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+                const newContacts = json.map(row => ({
+                    name: String(row['اسم المكتب'] || ''),
+                    extension: String(row['التحويلة'] || ''),
+                    location: String(row['الموقع'] || ''),
+                    email: String(row['البريد الإلكتروني'] || ''),
+                }));
+
+                const { data: upsertedData, error } = await supabase.from('office_contacts').upsert(newContacts, { onConflict: 'name' }).select();
+
+                if (error) throw error;
+
+                setOfficeContacts(prev => {
+                    const existingNames = new Set(prev.map(c => c.name));
+                    const trulyNew = upsertedData.filter(c => !existingNames.has(c.name));
+                    const updated = prev.map(c => upsertedData.find(u => u.name === c.name) || c);
+                    return [...updated, ...trulyNew];
+                });
+                
+                addToast('نجاح', `تم استيراد وتحديث ${upsertedData.length} جهة اتصال بنجاح.`, 'success');
+            } catch (err) {
+                console.error("Import error:", err);
+                addToast('خطأ في الاستيراد', 'فشل استيراد الملف. تأكد من أن التنسيق صحيح.', 'error');
+            } finally {
+                setIsImporting(false);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    const handleExportOfficeContacts = () => {
+        const dataToExport = officeContacts.map(c => ({
+            'اسم المكتب': c.name,
+            'التحويلة': c.extension,
+            'الموقع': c.location,
+            'البريد الإلكتروني': c.email
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'تحويلات المكاتب');
+        XLSX.writeFile(workbook, 'office_contacts_export.xlsx');
+        addToast('تم التصدير', 'تم تصدير تحويلات المكاتب بنجاح.', 'success');
+    };
+
 
     // --- Task Handlers ---
     const handleSaveTask = async (taskData: Omit<Task, 'id'> & { id?: number }) => {
@@ -309,393 +444,90 @@ const App: React.FC = () => {
             } else {
                 setTasks(prev => [...prev, data[0]]);
             }
-            addToast(taskData.id ? 'تم التحديث' : 'تم الحفظ', taskData.id ? 'تم تحديث المهمة بنجاح!' : 'تمت إضافة المهمة بنجاح!', 'success');
+            addToast('نجاح', `تم ${taskData.id ? 'تحديث' : 'إضافة'} المهمة بنجاح.`, 'success');
             setShowAddTaskModal(false);
             setTaskToEdit(null);
         }
     };
-
-    const handleDeleteTask = async (task: Task) => {
-        requestConfirmation(
-            `حذف المهمة: "${task.title}"`,
-            'هل أنت متأكد من رغبتك في حذف هذه المهمة؟',
-            async () => {
-                const { error } = await supabase.from('tasks').delete().eq('id', task.id);
-                if (error) {
-                    addToast('خطأ', `فشل حذف المهمة: ${error.message}`, 'error');
-                } else {
-                    setTasks(prev => prev.filter(t => t.id !== task.id));
-                    addToast('تم الحذف', 'تم حذف المهمة.', 'deleted');
-                }
+    
+    const handleDeleteTask = (task: Task) => {
+        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف مهمة "${task.title}"؟`, async () => {
+            const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+            if (error) {
+                addToast('خطأ', `فشل الحذف: ${error.message}`, 'error');
+            } else {
+                setTasks(prev => prev.filter(t => t.id !== task.id));
+                addToast('تم الحذف', 'تم حذف المهمة بنجاح.', 'deleted');
             }
-        );
+        });
     };
-
-    const handleToggleTaskCompletion = async (taskId: number) => {
-        const taskToToggle = tasks.find(t => t.id === taskId);
-        if (!taskToToggle) return;
-        
-        const { error } = await supabase.from('tasks').update({ is_completed: !taskToToggle.is_completed }).eq('id', taskId);
-        if (error) {
-            addToast('خطأ', `فشل تحديث حالة المهمة: ${error.message}`, 'error');
-        } else {
-            setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, is_completed: !t.is_completed } : t)));
-            if (!taskToToggle.is_completed) { // If it was false, it's now true
-                addToast('اكتملت المهمة', `"${taskToToggle.title}"`, 'success');
+    
+    const handleToggleTaskComplete = async (taskId: number) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+            const { data, error } = await supabase.from('tasks').update({ is_completed: !task.is_completed }).eq('id', taskId).select();
+            if (error) {
+                addToast('خطأ', `فشل تحديث حالة المهمة: ${error.message}`, 'error');
+            } else if (data) {
+                setTasks(prev => prev.map(t => t.id === taskId ? data[0] : t));
             }
         }
     };
-    
-    const handleOpenAddTaskModal = () => {
-        setTaskToEdit(null);
-        setShowAddTaskModal(true);
-    };
 
-    const handleOpenEditTaskModal = (task: Task) => {
-        setTaskToEdit(task);
-        setShowAddTaskModal(true);
-    };
 
     // --- Transaction Handlers ---
     const handleSaveTransaction = async (transactionData: Omit<Transaction, 'id'> & { id?: number }) => {
         const { data, error } = await supabase.from('transactions').upsert(transactionData).select();
         if (error) {
-             addToast('خطأ', `فشل حفظ المعاملة: ${error.message}`, 'error');
+            addToast('خطأ', `فشل حفظ المعاملة: ${error.message}`, 'error');
         } else if (data) {
             if (transactionData.id) {
                 setTransactions(prev => prev.map(t => (t.id === data[0].id ? data[0] : t)));
             } else {
                 setTransactions(prev => [...prev, data[0]]);
             }
-            addToast(transactionData.id ? 'تم التحديث' : 'تم الحفظ', transactionData.id ? 'تم تحديث المعاملة بنجاح!' : 'تمت إضافة المعاملة بنجاح!', 'success');
+            addToast('نجاح', `تم ${transactionData.id ? 'تحديث' : 'إضافة'} المعاملة بنجاح.`, 'success');
             setShowAddTransactionModal(false);
             setTransactionToEdit(null);
         }
     };
-
-    const handleDeleteTransaction = async (transaction: Transaction) => {
-        requestConfirmation(
-            `حذف المعاملة: "${transaction.transaction_number}"`,
-            'هل أنت متأكد من رغبتك في حذف هذه المعاملة؟',
-            async () => {
-                const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
-                if(error) {
-                    addToast('خطأ', `فشل حذف المعاملة: ${error.message}`, 'error');
-                } else {
-                    setTransactions(prev => prev.filter(t => t.id !== transaction.id));
-                    setSelectedTransaction(null);
-                    addToast('تم الحذف', 'تم حذف المعاملة.', 'deleted');
-                }
+    
+    const handleDeleteTransaction = (transaction: Transaction) => {
+        requestConfirmation('تأكيد الحذف', `هل أنت متأكد من رغبتك في حذف المعاملة رقم "${transaction.transaction_number}"؟`, async () => {
+            const { error } = await supabase.from('transactions').delete().eq('id', transaction.id);
+            if (error) {
+                addToast('خطأ', `فشل حذف المعاملة: ${error.message}`, 'error');
+            } else {
+                setTransactions(prev => prev.filter(t => t.id !== transaction.id));
+                addToast('تم الحذف', 'تم حذف المعاملة بنجاح.', 'deleted');
             }
-        );
+             setSelectedTransaction(null); // Close detail modal
+        });
     };
-
-    const handleOpenAddTransactionModal = () => {
-        setTransactionToEdit(null);
-        setShowAddTransactionModal(true);
-    };
-
-    const handleOpenEditTransactionModal = (transaction: Transaction) => {
-        setSelectedTransaction(null);
-        setTransactionToEdit(transaction);
-        setShowAddTransactionModal(true);
-    };
-
-    // --- Generic Excel Parser ---
-    const parseExcelFile = (
-        file: File, 
-        aliases: { [key: string]: string[] }, 
-        requiredKeys: string[],
-        callback: (data: any[], error?: string) => void
-    ) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = e.target?.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-                if (json.length === 0) {
-                    callback([], "الملف فارغ أو لا يمكن قراءته.");
-                    return;
-                }
-                
-                // Normalize headers
-                const normalizedData = json.map((row: any) => {
-                    const newRow: { [key: string]: any } = {};
-                    for (const key in row) {
-                        const normalizedKey = Object.keys(aliases).find(
-                            aliasKey => [aliasKey.toLowerCase(), ...aliases[aliasKey].map(a => a.toLowerCase())].includes(key.trim().toLowerCase())
-                        );
-                        if (normalizedKey) {
-                            newRow[normalizedKey] = String(row[key]).trim();
-                        }
-                    }
-                    return newRow;
-                });
-
-                // Check for required keys in the first row
-                const firstRowKeys = Object.keys(normalizedData[0]);
-                const missingKeys = requiredKeys.filter(key => !firstRowKeys.includes(key));
-
-                if (missingKeys.length > 0) {
-                    callback([], `الأعمدة المطلوبة غير موجودة في الملف: ${missingKeys.join(', ')}`);
-                    return;
-                }
-                
-                callback(normalizedData);
-            } catch (error) {
-                console.error("Error parsing Excel file:", error);
-                callback([], "حدث خطأ أثناء معالجة الملف. يرجى التأكد من أنه ملف Excel صالح.");
-            }
+    
+    // --- Generic Import/Export ---
+    const handleGenericImport = () => {
+        const handlerMap = {
+            directory: handleImportEmployees,
+            officeDirectory: handleImportOfficeContacts,
+            // Add other tabs here
+            tasks: () => addToast('معلومة', 'استيراد المهام غير مدعوم حالياً.', 'info'),
+            transactions: () => addToast('معلومة', 'استيراد المعاملات غير مدعوم حالياً.', 'info'),
+            orgChart: () => {},
+            statistics: () => {}
         };
-        reader.onerror = (error) => {
-            console.error("FileReader error:", error);
-            callback([], "لا يمكن قراءة الملف.");
-        };
-        reader.readAsBinaryString(file);
+        const handler = handlerMap[activeTab];
+        setImportHandler(() => handler);
+        genericFileInputRef.current?.click();
     };
 
-    // --- Employee Import/Export ---
-    const handleImportEmployees = (file: File) => {
-        setIsImporting(true);
-        const aliases = {
-            full_name_ar: ['الاسم الكامل (عربي)', 'الاسم', 'full_name_ar', 'الاسم باللغة العربية'],
-            full_name_en: ['الاسم الكامل (إنجليزي)', 'full_name_en', 'الاسم باللغة الانجليزية'],
-            employee_id: ['الرقم الوظيفي', 'employee_id'],
-            job_title: ['المسمى الوظيفي', 'job_title'],
-            department: ['القطاع', 'department'],
-            phone_direct: ['الجوال', 'phone_direct', 'رقم الجوال'],
-            email: ['البريد الإلكتروني', 'email', 'الايميل'],
-            center: ['المركز', 'center'],
-            national_id: ['رقم السجل المدني/الإقامة', 'national_id', 'السجل المدني / الإقامة'],
-            nationality: ['الجنسية', 'nationality'],
-            gender: ['الجنس', 'gender'],
-            date_of_birth: ['تاريخ الميلاد', 'date_of_birth'],
-            classification_id: ['رقم التصنيف', 'classification_id'],
-        };
-        const requiredKeys = ['employee_id'];
-
-        parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
-            if (error) {
-                addToast('خطأ في الاستيراد', error, 'error');
-                setIsImporting(false);
-                return;
-            }
-
-            const employeeIdHeaders = ['الرقم الوظيفي', 'employee_id', ...aliases.employee_id].map(h => h.toLowerCase());
-
-            const validData = data.filter(item => {
-                // Rule 1: Must not be a header row
-                const employeeIdValue = String(item.employee_id || '').trim().toLowerCase();
-                if (employeeIdHeaders.includes(employeeIdValue)) {
-                    return false;
-                }
-
-                // Rule 2: Must have the required key with actual content
-                const hasRequiredKey = item.employee_id && String(item.employee_id).trim() !== '';
-                if (!hasRequiredKey) {
-                    return false;
-                }
-                
-                return true;
-            });
-
-            const ignoredRowsCount = data.length - validData.length;
-            if (ignoredRowsCount > 0) {
-                addToast('معلومات', `تم تجاهل ${ignoredRowsCount} صفًا لعدم احتوائها على رقم وظيفي أو لكونها ترويسات متكررة.`, 'info');
-            }
-
-            // Deduplicate data from the file based on employee_id, keeping the last entry.
-            const employeeMap = new Map<string, any>();
-            validData.forEach(item => {
-                const employeeId = String(item.employee_id || '').trim();
-                if (employeeId) {
-                    employeeMap.set(employeeId, item);
-                }
-            });
-            const deduplicatedData = Array.from(employeeMap.values());
-            const duplicateCount = validData.length - deduplicatedData.length;
-
-            if (duplicateCount > 0) {
-                addToast('معلومات', `تم دمج ${duplicateCount} سجلًا مكررًا من الملف. سيتم استخدام أحدث البيانات لكل موظف.`, 'info');
-            }
-
-            if (deduplicatedData.length === 0) {
-                 if (ignoredRowsCount === 0) {
-                    addToast('خطأ', 'لم يتم العثور على بيانات صالحة للاستيراد.', 'error');
-                }
-                setIsImporting(false);
-                return;
-            }
-            
-            let invalidGenderCount = 0;
-            const employeesToUpsert = deduplicatedData.map(item => {
-                const employee: any = {};
-                for (const key in aliases) {
-                    if (item[key] !== undefined) employee[key] = item[key];
-                }
-
-                if (item.date_of_birth) {
-                    if (typeof item.date_of_birth === 'number' && item.date_of_birth > 1) {
-                        employee.date_of_birth = new Date(Math.round((item.date_of_birth - 25569) * 86400 * 1000)).toISOString();
-                    } else if (typeof item.date_of_birth === 'string') {
-                        const parsedDate = new Date(item.date_of_birth);
-                        if (!isNaN(parsedDate.getTime())) {
-                            employee.date_of_birth = parsedDate.toISOString();
-                        } else {
-                            employee.date_of_birth = null;
-                        }
-                    } else {
-                        employee.date_of_birth = null;
-                    }
-                } else {
-                    employee.date_of_birth = null;
-                }
-
-                if (item.gender && String(item.gender).length > 20) {
-                    employee.gender = null;
-                    invalidGenderCount++;
-                }
-                
-                return employee;
-            });
-            
-            if (invalidGenderCount > 0) {
-                 addToast('تحذير', `تم تجاهل بيانات "الجنس" لـ ${invalidGenderCount} موظفًا لأنها تتجاوز الحد المسموح به.`, 'warning');
-            }
-
-            const { error: upsertError } = await supabase.from('employees').upsert(employeesToUpsert, { onConflict: 'employee_id' });
-            setIsImporting(false);
-            if (upsertError) {
-                addToast('خطأ', `فشل استيراد الموظفين: ${upsertError.message}`, 'error');
-            } else {
-                addToast('تم الاستيراد', `تم استيراد وتحديث ${deduplicatedData.length} موظف بنجاح!`, 'info');
-                const { data: employeesData, error: employeesError } = await supabase.from('employees').select('*').order('full_name_ar', { ascending: true });
-                if (!employeesError) setEmployees(employeesData || []);
-            }
-        });
-    };
-
-    const handleExportEmployees = () => {
-        if (filteredEmployees.length === 0) {
-            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
-            return;
+    const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && importHandler) {
+            importHandler(file);
         }
-        const dataToExport = filteredEmployees.map(({ id, ...rest }) => rest);
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-        XLSX.writeFile(workbook, `employees_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم التصدير', 'تم تصدير الموظفين بنجاح!', 'info');
-    };
-
-    // --- Office Contact Import/Export ---
-    const handleImportOfficeContacts = (file: File) => {
-        setIsImporting(true);
-        const aliases = { name: ['اسم المكتب', 'name'], extension: ['رقم التحويلة', 'extension'], location: ['الموقع', 'location'], email: ['البريد الإلكتروني', 'email'] };
-        const requiredKeys = ['name', 'extension'];
-        parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
-            setIsImporting(false);
-            if (error) {
-                addToast('خطأ في الاستيراد', error, 'error');
-                return;
-            }
-            const { error: upsertError } = await supabase.from('office_contacts').upsert(data, { onConflict: 'name' });
-            if (upsertError) {
-                addToast('خطأ', `فشل استيراد التحويلات: ${upsertError.message}`, 'error');
-            } else {
-                addToast('تم الاستيراد', `تم استيراد ${data.length} تحويلة بنجاح!`, 'info');
-                const { data: contactsData, error: contactsError } = await supabase.from('office_contacts').select('*').order('name', { ascending: true });
-                if (!contactsError) setOfficeContacts(contactsData || []);
-            }
-        });
-    };
-
-    const handleExportOfficeContacts = () => {
-        if (officeContacts.length === 0) {
-            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
-            return;
-        }
-        const dataToExport = officeContacts.map(({ id, ...rest }) => rest);
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "OfficeContacts");
-        XLSX.writeFile(workbook, `office_contacts_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم التصدير', 'تم تصدير التحويلات بنجاح!', 'info');
-    };
-
-    // --- Task Import/Export ---
-    const handleImportTasks = (file: File) => {
-        setIsImporting(true);
-        const aliases = { title: ['عنوان المهمة', 'title'], description: ['الوصف', 'description'], due_date: ['تاريخ الاستحقاق', 'due_date'], is_completed: ['مكتملة', 'is_completed'] };
-        const requiredKeys = ['title'];
-        parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
-            setIsImporting(false);
-            if (error) {
-                addToast('خطأ في الاستيراد', error, 'error');
-                return;
-            }
-            const tasksToInsert = data.map(item => ({ ...item, is_completed: ['true', 'yes', '1', 'نعم'].includes(String(item.is_completed).toLowerCase())}));
-            const { error: insertError } = await supabase.from('tasks').insert(tasksToInsert);
-            if (insertError) {
-                addToast('خطأ', `فشل استيراد المهام: ${insertError.message}`, 'error');
-            } else {
-                addToast('تم الاستيراد', `تم استيراد ${data.length} مهمة بنجاح!`, 'info');
-                const { data: tasksData, error: tasksError } = await supabase.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false });
-                if (!tasksError) setTasks(tasksData || []);
-            }
-        });
-    };
-
-    const handleExportTasks = () => {
-        if (tasks.length === 0) {
-            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
-            return;
-        }
-        const dataToExport = tasks.map(({ id, ...rest }) => rest);
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
-        XLSX.writeFile(workbook, `tasks_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم التصدير', 'تم تصدير المهام بنجاح!', 'info');
-    };
-
-    // --- Transaction Import/Export ---
-    const handleImportTransactions = (file: File) => {
-        setIsImporting(true);
-        const aliases = { transaction_number: ['رقم المعاملة', 'transaction_number'], subject: ['الموضوع', 'subject'], type: ['النوع', 'type'], platform: ['المنصة', 'platform'], status: ['الحالة', 'status'], date: ['التاريخ', 'date'], description: ['ملاحظات', 'description'] };
-        const requiredKeys = ['transaction_number', 'subject', 'date'];
-        parseExcelFile(file, aliases, requiredKeys, async (data, error) => {
-            setIsImporting(false);
-            if (error) {
-                addToast('خطأ في الاستيراد', error, 'error');
-                return;
-            }
-            const { error: upsertError } = await supabase.from('transactions').upsert(data, { onConflict: 'transaction_number' });
-            if (upsertError) {
-                addToast('خطأ', `فشل استيراد المعاملات: ${upsertError.message}`, 'error');
-            } else {
-                addToast('تم الاستيراد', `تم استيراد ${data.length} معاملة بنجاح!`, 'info');
-                const { data: transData, error: transError } = await supabase.from('transactions').select('*').order('date', { ascending: false });
-                if (!transError) setTransactions(transData || []);
-            }
-        });
-    };
-
-    const handleExportTransactions = () => {
-        if (transactions.length === 0) {
-            addToast('تحذير', 'لا توجد بيانات لتصديرها.', 'warning');
-            return;
-        }
-        const dataToExport = transactions.map(({ id, attachment, ...rest }) => rest);
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-        XLSX.writeFile(workbook, `transactions_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addToast('تم التصدير', 'تم تصدير المعاملات بنجاح!', 'info');
+        // Reset file input
+        if(event.target) event.target.value = '';
     };
 
     if (!isAuthenticated) {
@@ -707,142 +539,196 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen font-sans dark:bg-gray-900 selection:bg-primary/20 selection:text-primary-dark">
+        <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
             <Header onOpenSettings={() => setShowSettings(true)} />
-
-            <main className="container mx-auto px-4 md:px-6 pb-24 md:pb-8">
-                <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
-                {activeTab === 'directory' && (
-                    <>
-                        <SearchAndFilter
-                            ref={searchAndFilterRef}
-                            searchTerm={searchTerm}
-                            setSearchTerm={setSearchTerm}
-                            onImport={handleImportEmployees}
-                            onAddEmployeeClick={handleOpenAddModal}
-                            onExport={handleExportEmployees}
-                            showImportExport={showImportExport}
-                        />
-                        {loading ? 
-                            <div className="flex justify-center items-center p-20">
-                                <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-primary dark:border-gray-700 dark:border-t-primary"></div>
-                            </div> : 
-                            <EmployeeList 
-                                employees={visibleEmployees} 
-                                onSelectEmployee={setSelectedEmployee} 
-                                onLoadMore={loadMoreEmployees}
-                                hasMore={hasMoreEmployees}
-                                isLoadingMore={isLoadingMore}
-                            />
-                        }
-                    </>
-                )}
-
-                {activeTab === 'dashboard' && <Dashboard employees={employees} />}
-                
-                {activeTab === 'officeDirectory' && <OfficeDirectory 
-                    contacts={officeContacts} 
-                    onEditContact={handleOpenEditContactModal} 
-                    onAddContact={handleOpenAddContactModal}
-                    onDeleteContact={handleDeleteOfficeContact}
-                    onImport={handleImportOfficeContacts}
-                    onExport={handleExportOfficeContacts}
-                    showImportExport={showImportExport}
-                    allowDeletion={allowDeletion}
-                    allowEditing={allowEditing}
-                />}
-
-                {activeTab === 'tasks' && <TasksView 
-                    tasks={tasks} 
-                    onAddTask={handleOpenAddTaskModal} 
-                    onEditTask={handleOpenEditTaskModal} 
-                    onDeleteTask={handleDeleteTask} 
-                    onToggleComplete={handleToggleTaskCompletion}
-                    onImport={handleImportTasks}
-                    onExport={handleExportTasks}
-                    showImportExport={showImportExport}
-                    allowDeletion={allowDeletion}
-                    allowEditing={allowEditing}
-                />}
-
-                {activeTab === 'transactions' && <TransactionsView 
-                    transactions={transactions} 
-                    onAddTransaction={handleOpenAddTransactionModal}
-                    onEditTransaction={handleOpenEditTransactionModal}
-                    onDeleteTransaction={handleDeleteTransaction}
-                    onSelectTransaction={setSelectedTransaction}
-                    onImport={handleImportTransactions}
-                    onExport={handleExportTransactions}
-                    showImportExport={showImportExport}
-                    allowDeletion={allowDeletion}
-                    allowEditing={allowEditing}
-                />}
-
-                {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} />}
-
-            </main>
             
-            {/* --- Modals --- */}
-            <EmployeeProfileModal 
-                isOpen={!!selectedEmployee} 
-                employee={selectedEmployee} 
-                onClose={() => setSelectedEmployee(null)} 
-                onEdit={handleOpenEditModal} 
-                onDelete={handleDeleteEmployee} 
-                allowDeletion={allowDeletion}
-                allowEditing={allowEditing}
+            <main className="container mx-auto px-4 md:px-6 flex-grow pb-24 md:pb-6">
+                 <Tabs activeTab={activeTab} setActiveTab={(tab) => {
+                    setActiveTab(tab);
+                    setSearchTerm(''); // Reset search when changing tabs
+                 }} />
+
+                 {loading && (
+                    <div className="flex justify-center items-center py-20">
+                         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary dark:border-gray-700 dark:border-t-primary"></div>
+                    </div>
+                 )}
+
+                 {!loading && (
+                    <>
+                        {activeTab === 'directory' && (
+                            <>
+                                <SearchAndFilter
+                                    ref={searchAndFilterRef}
+                                    searchTerm={searchTerm}
+                                    setSearchTerm={setSearchTerm}
+                                    onImportClick={() => requestAdminPermission(handleGenericImport)}
+                                    onAddEmployeeClick={() => {
+                                        setEmployeeToEdit(null);
+                                        setShowAddEmployeeModal(true);
+                                    }}
+                                    onExportClick={handleExportEmployees}
+                                />
+                                <EmployeeList
+                                    employees={visibleEmployees}
+                                    onSelectEmployee={setSelectedEmployee}
+                                    onLoadMore={loadMoreEmployees}
+                                    hasMore={hasMoreEmployees}
+                                    isLoadingMore={isLoadingMore}
+                                />
+                            </>
+                        )}
+                        {activeTab === 'orgChart' && <OrganizationalChartView employees={employees} />}
+                        {activeTab === 'officeDirectory' && (
+                            <OfficeDirectory
+                                contacts={officeContacts}
+                                onAddContact={() => setShowAddOfficeContactModal(true)}
+                                onEditContact={setContactToEdit}
+                                onDeleteContact={handleDeleteOfficeContact}
+                                onImportClick={() => requestAdminPermission(handleGenericImport)}
+                                onExportClick={handleExportOfficeContacts}
+                            />
+                        )}
+                         {activeTab === 'tasks' && (
+                            <TasksView 
+                                tasks={tasks}
+                                onAddTask={() => { setTaskToEdit(null); setShowAddTaskModal(true); }}
+                                onEditTask={(task) => { setTaskToEdit(task); setShowAddTaskModal(true); }}
+                                onDeleteTask={handleDeleteTask}
+                                onToggleComplete={handleToggleTaskComplete}
+                                onImportClick={() => addToast('غير متوفر', 'استيراد المهام غير مدعوم حاليًا.', 'info')}
+                                onExportClick={() => addToast('غير متوفر', 'تصدير المهام غير مدعوم حاليًا.', 'info')}
+                            />
+                         )}
+                         {activeTab === 'transactions' && (
+                            <TransactionsView
+                                transactions={transactions}
+                                onAddTransaction={() => { setTransactionToEdit(null); setShowAddTransactionModal(true); }}
+                                onEditTransaction={(t) => { setTransactionToEdit(t); setShowAddTransactionModal(true); }}
+                                onDeleteTransaction={handleDeleteTransaction}
+                                onSelectTransaction={setSelectedTransaction}
+                                onImportClick={() => addToast('غير متوفر', 'استيراد المعاملات غير مدعوم حاليًا.', 'info')}
+                                onExportClick={() => addToast('غير متوفر', 'تصدير المعاملات غير مدعوم حاليًا.', 'info')}
+                            />
+                         )}
+                         {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} />}
+                    </>
+                 )}
+            </main>
+
+            <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+            
+            <SettingsScreen isOpen={showSettings} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
+
+            <input
+                type="file"
+                ref={genericFileInputRef}
+                onChange={handleFileSelected}
+                accept=".xlsx, .xls"
+                className="hidden"
             />
-            <AddEmployeeModal 
-                isOpen={showAddEmployeeModal} 
-                onClose={() => { setShowAddEmployeeModal(false); setEmployeeToEdit(null); }} 
-                onSave={handleSaveEmployee} 
-                employeeToEdit={employeeToEdit} 
-            />
-            <EditOfficeContactModal
-                isOpen={!!contactToEdit}
-                onClose={() => setContactToEdit(null)}
-                onSave={handleUpdateOfficeContact}
-                contactToEdit={contactToEdit}
-            />
+            
+            <ImportLoadingModal isOpen={isImporting} />
+
+            {selectedEmployee && (
+                <EmployeeProfileModal
+                    isOpen={!!selectedEmployee}
+                    employee={selectedEmployee}
+                    onClose={() => setSelectedEmployee(null)}
+                    onEdit={(emp) => {
+                        setSelectedEmployee(null); // Close profile modal
+                        setTimeout(() => { // Open edit modal after a short delay for smooth transition
+                            setEmployeeToEdit(emp);
+                            setShowAddEmployeeModal(true);
+                        }, 100);
+                    }}
+                    onDelete={handleDeleteEmployee}
+                />
+            )}
+            
+            {(showAddEmployeeModal || employeeToEdit) && (
+                 <AddEmployeeModal
+                    isOpen={showAddEmployeeModal || !!employeeToEdit}
+                    onClose={() => {
+                        setShowAddEmployeeModal(false);
+                        setEmployeeToEdit(null);
+                    }}
+                    onSave={handleSaveEmployee}
+                    employeeToEdit={employeeToEdit}
+                />
+            )}
+
+            {contactToEdit && (
+                <EditOfficeContactModal 
+                    isOpen={!!contactToEdit}
+                    onClose={() => setContactToEdit(null)}
+                    onSave={handleSaveOfficeContact}
+                    contactToEdit={contactToEdit}
+                />
+            )}
+            
             <AddOfficeContactModal
                 isOpen={showAddOfficeContactModal}
                 onClose={() => setShowAddOfficeContactModal(false)}
-                onSave={handleAddOfficeContact}
+                onSave={handleSaveOfficeContact}
             />
-            <AddTaskModal
-                isOpen={showAddTaskModal}
-                onClose={() => { setShowAddTaskModal(false); setTaskToEdit(null); }}
-                onSave={handleSaveTask}
-                taskToEdit={taskToEdit}
-            />
-            <AddTransactionModal
-                isOpen={showAddTransactionModal}
-                onClose={() => { setShowAddTransactionModal(false); setTransactionToEdit(null); }}
-                onSave={handleSaveTransaction}
-                transactionToEdit={transactionToEdit}
-            />
-            <TransactionDetailModal
-                isOpen={!!selectedTransaction}
-                transaction={selectedTransaction}
-                onClose={() => setSelectedTransaction(null)}
-                onEdit={handleOpenEditTransactionModal}
-                onDelete={handleDeleteTransaction}
-                allowDeletion={allowDeletion}
-                allowEditing={allowEditing}
-            />
+
+             {(showAddTaskModal || taskToEdit) && (
+                 <AddTaskModal
+                    isOpen={showAddTaskModal || !!taskToEdit}
+                    onClose={() => { setShowAddTaskModal(false); setTaskToEdit(null); }}
+                    onSave={handleSaveTask}
+                    taskToEdit={taskToEdit}
+                />
+            )}
+
+            {(showAddTransactionModal || transactionToEdit) && (
+                <AddTransactionModal
+                    isOpen={showAddTransactionModal || !!transactionToEdit}
+                    onClose={() => { setShowAddTransactionModal(false); setTransactionToEdit(null); }}
+                    onSave={handleSaveTransaction}
+                    transactionToEdit={transactionToEdit}
+                />
+            )}
+            
+            {selectedTransaction && (
+                <TransactionDetailModal
+                    isOpen={!!selectedTransaction}
+                    transaction={selectedTransaction}
+                    onClose={() => setSelectedTransaction(null)}
+                    onEdit={(t) => {
+                        setSelectedTransaction(null);
+                        setTimeout(() => {
+                           setTransactionToEdit(t);
+                           setShowAddTransactionModal(true);
+                        }, 100);
+                    }}
+                    onDelete={handleDeleteTransaction}
+                />
+            )}
+
             <ConfirmationModal 
-                {...confirmation}
+                isOpen={confirmation.isOpen}
                 onClose={closeConfirmation}
+                onConfirm={() => {
+                    confirmation.onConfirm();
+                    closeConfirmation();
+                }}
+                title={confirmation.title}
+                message={confirmation.message}
             />
-            <ImportLoadingModal isOpen={isImporting} />
-            <SettingsScreen isOpen={showSettings} onClose={() => setShowSettings(false)} onLogout={handleLogout} />
 
-
-            <BottomNavBar 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
+            <AdminPasswordModal 
+                isOpen={adminAction.isOpen}
+                onClose={closeAdminModal}
+                onSuccess={() => {
+                    adminAction.onSuccess();
+                    closeAdminModal();
+                }}
             />
+            
+            <PromotionalModal isOpen={showPromoModal} onClose={() => setShowPromoModal(false)} />
+
         </div>
     );
 };

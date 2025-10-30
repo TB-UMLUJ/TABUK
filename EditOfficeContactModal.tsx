@@ -14,11 +14,22 @@ interface EditOfficeContactModalProps {
 const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen, onClose, onSave, contactToEdit }) => {
     const [isClosing, setIsClosing] = useState(false);
     const [contactData, setContactData] = useState<OfficeContact | null>(null);
+    const [emailError, setEmailError] = useState('');
+
+    const validateEmail = (email: string): string => {
+        if (!email) return ''; // Optional field
+        const emailRegex = /^[^\s@]+@moh\.gov\.sa$/i;
+        if (!emailRegex.test(email.toLowerCase())) {
+            return 'يجب أن يكون البريد الإلكتروني صالحًا وينتهي بـ @moh.gov.sa';
+        }
+        return '';
+    };
 
     useEffect(() => {
         // When contactToEdit prop changes, update the internal state.
         if (contactToEdit) {
             setContactData({ ...contactToEdit });
+            setEmailError(validateEmail(contactToEdit.email || ''));
         }
     }, [contactToEdit]);
 
@@ -41,6 +52,9 @@ const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen,
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        if (name === 'email') {
+            setEmailError(validateEmail(value));
+        }
         if (contactData) {
             setContactData({ ...contactData, [name]: value });
         }
@@ -49,6 +63,11 @@ const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen,
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (contactData) {
+            const currentEmailError = validateEmail(contactData.email || '');
+            if (currentEmailError) {
+                setEmailError(currentEmailError);
+                return;
+            }
             onSave(contactData);
         }
     };
@@ -100,6 +119,7 @@ const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen,
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">البريد الإلكتروني (اختياري)</label>
                                 <input id="email" name="email" type="email" value={contactData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                                {emailError && <p className="text-danger text-xs mt-1">{emailError}</p>}
                             </div>
                         </div>
                         
@@ -107,7 +127,11 @@ const EditOfficeContactModal: React.FC<EditOfficeContactModalProps> = ({ isOpen,
                             <button type="button" onClick={handleClose} className="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-all duration-200 transform hover:-translate-y-0.5 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
                                 إلغاء
                             </button>
-                            <button type="submit" className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:-translate-y-0.5">
+                            <button 
+                                type="submit" 
+                                disabled={!!emailError}
+                                className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:bg-primary-dark transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 حفظ التغييرات
                             </button>
                         </div>

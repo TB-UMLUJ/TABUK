@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { OfficeContact } from '../types';
 import { PhoneIcon, BuildingOfficeIcon, PencilIcon, EmailIcon, TrashIcon, Bars3Icon, PaperAirplaneIcon } from '../icons/Icons';
@@ -7,11 +8,9 @@ interface OfficeContactCardProps {
     contact: OfficeContact;
     onEdit: () => void;
     onDelete: () => void;
-    allowDeletion: boolean;
-    allowEditing: boolean;
 }
 
-const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, onDelete, allowDeletion, allowEditing }) => {
+const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, onDelete }) => {
     const { addToast } = useToast();
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -107,8 +106,8 @@ const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, 
                     {/* Desktop Buttons */}
                     <div className="hidden md:flex items-center gap-1">
                         <button onClick={handleShare} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="مشاركة"><PaperAirplaneIcon className="w-5 h-5" /></button>
-                        {allowEditing && <button onClick={handleEdit} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="تعديل"><PencilIcon className="w-5 h-5" /></button>}
-                        {allowDeletion && <button onClick={handleDelete} className="p-2 rounded-lg text-gray-500 hover:bg-danger/10 hover:text-danger dark:text-gray-400 dark:hover:bg-danger/20 dark:hover:text-red-400 transition-all" title="حذف"><TrashIcon className="w-5 h-5" /></button>}
+                        <button onClick={handleEdit} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="تعديل"><PencilIcon className="w-5 h-5" /></button>
+                        <button onClick={handleDelete} className="p-2 rounded-lg text-gray-500 hover:bg-danger/10 hover:text-danger dark:text-gray-400 dark:hover:bg-danger/20 dark:hover:text-red-400 transition-all" title="حذف"><TrashIcon className="w-5 h-5" /></button>
                         {isValidEmail && <button onClick={() => handleEmailAction('copy')} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title={`نسخ ${contact.email}`}><EmailIcon className="w-5 h-5" /></button>}
                         <button
                             onClick={handleCall}
@@ -140,18 +139,14 @@ const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, 
                         <PaperAirplaneIcon className="w-6 h-6" />
                         <span className="text-xs">مشاركة</span>
                     </ActionButton>
-                    {allowEditing && (
-                        <ActionButton onClick={handleEdit} title="تعديل">
-                            <PencilIcon className="w-6 h-6" />
-                            <span className="text-xs">تعديل</span>
-                        </ActionButton>
-                    )}
-                    {allowDeletion && (
-                        <ActionButton onClick={handleDelete} title="حذف" className="text-danger hover:bg-danger/10">
-                            <TrashIcon className="w-6 h-6" />
-                            <span className="text-xs">حذف</span>
-                        </ActionButton>
-                    )}
+                    <ActionButton onClick={handleEdit} title="تعديل">
+                        <PencilIcon className="w-6 h-6" />
+                        <span className="text-xs">تعديل</span>
+                    </ActionButton>
+                    <ActionButton onClick={handleDelete} title="حذف" className="text-danger hover:bg-danger/10">
+                        <TrashIcon className="w-6 h-6" />
+                        <span className="text-xs">حذف</span>
+                    </ActionButton>
                     {isValidEmail && (
                         <ActionButton onClick={(e) => { e.stopPropagation(); handleEmailAction('copy'); }} title="نسخ البريد" className="text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50">
                             <EmailIcon className="w-6 h-6" />

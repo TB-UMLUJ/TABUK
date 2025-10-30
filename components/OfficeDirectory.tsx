@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useMemo, useRef } from 'react';
 import { OfficeContact } from '../types';
 import OfficeContactCard from './OfficeContactCard';
@@ -13,24 +9,12 @@ interface OfficeDirectoryProps {
     onEditContact: (contact: OfficeContact) => void;
     onAddContact: () => void;
     onDeleteContact: (contact: OfficeContact) => void;
-    onImport: (file: File) => void;
-    onExport: () => void;
-    showImportExport: boolean;
-    allowDeletion: boolean;
-    allowEditing: boolean;
+    onImportClick: () => void;
+    onExportClick: () => void;
 }
 
-const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditContact, onAddContact, onDeleteContact, onImport, onExport, showImportExport, allowDeletion, allowEditing }) => {
+const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditContact, onAddContact, onDeleteContact, onImportClick, onExportClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleImportClick = () => fileInputRef.current?.click();
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) onImport(file);
-        if (event.target) event.target.value = '';
-    };
 
     const filteredContacts = useMemo(() => {
         if (!searchTerm) {
@@ -69,17 +53,14 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                             <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                         </div>
                     </div>
-                    {showImportExport && (
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <button onClick={handleImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
-                                <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
-                            </button>
-                            <button onClick={onExport} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
-                                <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">تصدير</span>
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx, .xls" />
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button onClick={onImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
+                            <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
+                        </button>
+                        <button onClick={onExportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
+                            <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">تصدير</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -91,8 +72,6 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                             contact={contact} 
                             onEdit={() => onEditContact(contact)}
                             onDelete={() => onDeleteContact(contact)}
-                            allowDeletion={allowDeletion}
-                            allowEditing={allowEditing}
                         />
                     ))}
                 </div>

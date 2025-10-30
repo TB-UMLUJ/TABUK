@@ -1,6 +1,8 @@
-import React, { useMemo } from 'react';
+
+import React, { useMemo, useState, useEffect } from 'react';
 import { Employee } from '../types';
-import { UserGroupIcon, BuildingOfficeIcon } from '../icons/Icons';
+import { UserGroupIcon, BuildingOfficeIcon, Cog6ToothIcon } from '../icons/Icons';
+import DashboardSettingsModal from './DashboardSettingsModal';
 
 interface DashboardProps {
   employees: Employee[];
@@ -30,7 +32,43 @@ const BarChart: React.FC<{ data: { label: string; value: number }[]; color: stri
     );
 };
 
+interface ChartVisibility {
+    departmentDistribution: boolean;
+    jobTitleDistribution: boolean;
+}
+
 const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [visibleCharts, setVisibleCharts] = useState<ChartVisibility>(() => {
+        try {
+            const saved = localStorage.getItem('dashboardCharts');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return {
+                    departmentDistribution: parsed.departmentDistribution !== false,
+                    jobTitleDistribution: parsed.jobTitleDistribution !== false,
+                };
+            }
+        } catch (e) {
+            console.error("Failed to parse dashboard settings from localStorage", e);
+        }
+        return {
+            departmentDistribution: true,
+            jobTitleDistribution: true,
+        };
+    });
+
+    useEffect(() => {
+        localStorage.setItem('dashboardCharts', JSON.stringify(visibleCharts));
+    }, [visibleCharts]);
+
+    const handleToggleChart = (chartKey: keyof ChartVisibility) => {
+        setVisibleCharts(prev => ({
+            ...prev,
+            [chartKey]: !prev[chartKey],
+        }));
+    };
+
     const stats = useMemo(() => {
         const total = employees.length;
         const departments = [...new Set(employees.map(e => e.department))].length;
@@ -39,7 +77,6 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
             map.set(e.department, (map.get(e.department) || 0) + 1), new Map<string, number>())
         ].map(([label, value]) => ({ label, value })).sort((a,b) => b.value - a.value);
         
-        // Fix: Corrected property name from jobTitle to job_title
         const employeesByJobTitle = [...employees.reduce((map, e) => 
             map.set(e.job_title, (map.get(e.job_title) || 0) + 1), new Map<string, number>())
         ].map(([label, value]) => ({ label, value })).sort((a,b) => b.value - a.value);
@@ -65,25 +102,48 @@ const Dashboard: React.FC<DashboardProps> = ({ employees }) => {
     );
 
     return (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-            <div className="lg:col-span-2">
-                <StatCard title="إجمالي الموظفين" value={stats.total} icon={<UserGroupIcon className="w-8 h-8 text-primary dark:text-primary-light"/>} />
+        <div className="mt-6 animate-fade-in">
+             <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white">نظرة عامة</h2>
+                <button
+                    onClick={() => setIsSettingsModalOpen(true)}
+                    className="p-2.5 rounded-lg text-gray-500 hover:bg-primary/10 hover:text-primary transition-all duration-200 transform hover:-translate-y-0.5 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                    title="تخصيص لوحة المعلومات"
+                    aria-label="تخصيص لوحة المعلومات"
+                >
+                    <Cog6ToothIcon className="h-6 w-6" />
+                </button>
             </div>
-            <div className="lg:col-span-2">
-                <StatCard title="القطاعات" value={stats.departments} icon={<BuildingOfficeIcon className="w-8 h-8 text-primary dark:text-primary-light"/>} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-2">
+                    <StatCard title="إجمالي الموظفين" value={stats.total} icon={<UserGroupIcon className="w-8 h-8 text-primary dark:text-primary-light"/>} />
+                </div>
+                <div className="lg:col-span-2">
+                    <StatCard title="القطاعات" value={stats.departments} icon={<BuildingOfficeIcon className="w-8 h-8 text-primary dark:text-primary-light"/>} />
+                </div>
+                
+                {visibleCharts.departmentDistribution && (
+                    <div className="lg:col-span-2">
+                        <ChartCard title="توزيع الموظفين حسب القطاع">
+                            <BarChart data={stats.employeesByDepartment} color="#00A76F" />
+                        </ChartCard>
+                    </div>
+                )}
+                
+                {visibleCharts.jobTitleDistribution && (
+                    <div className="lg:col-span-2">
+                        <ChartCard title="توزيع الموظفين حسب المسمى الوظيفي">
+                            <BarChart data={stats.employeesByJobTitle} color="#00B8D9" />
+                        </ChartCard>
+                    </div>
+                )}
             </div>
-            
-            <div className="lg:col-span-2">
-                 <ChartCard title="توزيع الموظفين حسب القطاع">
-                    <BarChart data={stats.employeesByDepartment} color="#00A76F" />
-                </ChartCard>
-            </div>
-            
-            <div className="lg:col-span-2">
-                <ChartCard title="توزيع الموظفين حسب المسمى الوظيفي">
-                    <BarChart data={stats.employeesByJobTitle} color="#00B8D9" />
-                </ChartCard>
-            </div>
+            <DashboardSettingsModal 
+                isOpen={isSettingsModalOpen}
+                onClose={() => setIsSettingsModalOpen(false)}
+                visibleCharts={visibleCharts}
+                onToggleChart={handleToggleChart}
+            />
         </div>
     );
 };

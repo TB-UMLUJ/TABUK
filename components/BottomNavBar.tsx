@@ -1,7 +1,8 @@
-import React from 'react';
-import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon, ChartPieIcon } from '../icons/Icons';
 
-type TabId = 'directory' | 'dashboard' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
+import React from 'react';
+import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon, UserGroupIcon } from '../icons/Icons';
+
+type TabId = 'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
 
 interface BottomNavBarProps {
     activeTab: TabId;
@@ -57,10 +58,10 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                     isActive={activeTab === 'transactions'}
                 />
                  <NavButton
-                    label="اللوحة"
-                    icon={ChartPieIcon}
-                    onClick={() => setActiveTab('dashboard')}
-                    isActive={activeTab === 'dashboard'}
+                    label="الهيكل"
+                    icon={UserGroupIcon}
+                    onClick={() => setActiveTab('orgChart')}
+                    isActive={activeTab === 'orgChart'}
                 />
                  <NavButton
                     label="إحصائيات"
