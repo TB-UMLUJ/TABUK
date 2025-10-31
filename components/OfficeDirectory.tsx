@@ -1,8 +1,12 @@
 
+
+
 import React, { useState, useMemo, useRef } from 'react';
 import { OfficeContact } from '../types';
 import OfficeContactCard from './OfficeContactCard';
 import { SearchIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon } from '../icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface OfficeDirectoryProps {
     contacts: OfficeContact[];
@@ -15,6 +19,8 @@ interface OfficeDirectoryProps {
 
 const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditContact, onAddContact, onDeleteContact, onImportClick, onExportClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const { hasPermission } = useAuth();
+    const { addToast } = useToast();
 
     const filteredContacts = useMemo(() => {
         if (!searchTerm) {
@@ -26,6 +32,14 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
         ).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     }, [contacts, searchTerm]);
 
+    const handleAction = (action: () => void, permission: string, permissionName: string) => {
+        if (hasPermission(permission)) {
+            action();
+        } else {
+            addToast('غير مصرح', `ليس لديك الصلاحية ل${permissionName}.`, 'error');
+        }
+    };
+
     const emptyMessage = searchTerm
         ? "لا توجد نتائج مطابقة لبحثك."
         : "لا توجد تحويلات مكاتب حالياً. يمكنك إضافة تحويلة جديدة أو استيراد قائمة.";
@@ -33,14 +47,7 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
     return (
         <div className="mt-6 animate-fade-in relative pb-24">
             <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <button 
-                        onClick={onAddContact} 
-                        className="p-2.5 rounded-lg w-full sm:w-auto flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
-                        title="إضافة تحويلة جديدة"
-                    >
-                        <PlusIcon className="h-5 w-5 ml-2" /> إضافة
-                    </button>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full flex-grow">
                         <input
                             type="text"
@@ -54,12 +61,25 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                         </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <button onClick={onImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
-                            <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
-                        </button>
-                        <button onClick={onExportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
-                            <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">تصدير</span>
-                        </button>
+                        {hasPermission('edit_contacts') && (
+                            <button 
+                                onClick={onAddContact} 
+                                className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                                title="إضافة تحويلة جديدة"
+                            >
+                                <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                            </button>
+                        )}
+                        {hasPermission('import_export_contacts') && (
+                           <>
+                            <button onClick={onImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
+                                <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
+                            </button>
+                            <button onClick={onExportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-accent/10 text-accent-dark hover:bg-accent/20 dark:bg-accent/20 dark:text-accent-light dark:hover:bg-accent/30 transform hover:-translate-y-0.5">
+                                <ArrowDownTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">تصدير</span>
+                            </button>
+                           </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -70,8 +90,8 @@ const OfficeDirectory: React.FC<OfficeDirectoryProps> = ({ contacts, onEditConta
                         <OfficeContactCard 
                             key={contact.id} 
                             contact={contact} 
-                            onEdit={() => onEditContact(contact)}
-                            onDelete={() => onDeleteContact(contact)}
+                            onEdit={() => handleAction(() => onEditContact(contact), 'edit_contacts', 'تعديل التحويلات')}
+                            onDelete={() => handleAction(() => onDeleteContact(contact), 'delete_contacts', 'حذف التحويلات')}
                         />
                     ))}
                 </div>

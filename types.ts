@@ -53,3 +53,20 @@ export interface Transaction {
   description?: string;
   attachment?: Attachment;
 }
+
+// --- New RBAC Types ---
+export interface Role {
+  role_id: number;
+  role_name: string;
+}
+
+export interface User {
+  user_id: number;
+  username: string;
+  full_name: string;
+  is_active: boolean;
+  role: Role;
+  // FIX: Added role_id to match the database schema and resolve type errors during user upsert operations.
+  role_id: number;
+  permissions: string[];
+}

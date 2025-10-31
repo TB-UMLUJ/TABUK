@@ -1,8 +1,10 @@
 
+
 import React, { useState } from 'react';
 import { OfficeContact } from '../types';
 import { PhoneIcon, BuildingOfficeIcon, PencilIcon, EmailIcon, TrashIcon, Bars3Icon, PaperAirplaneIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface OfficeContactCardProps {
     contact: OfficeContact;
@@ -12,6 +14,7 @@ interface OfficeContactCardProps {
 
 const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, onDelete }) => {
     const { addToast } = useToast();
+    const { hasPermission } = useAuth();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleCall = (e: React.MouseEvent) => {
@@ -106,8 +109,8 @@ const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, 
                     {/* Desktop Buttons */}
                     <div className="hidden md:flex items-center gap-1">
                         <button onClick={handleShare} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="مشاركة"><PaperAirplaneIcon className="w-5 h-5" /></button>
-                        <button onClick={handleEdit} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="تعديل"><PencilIcon className="w-5 h-5" /></button>
-                        <button onClick={handleDelete} className="p-2 rounded-lg text-gray-500 hover:bg-danger/10 hover:text-danger dark:text-gray-400 dark:hover:bg-danger/20 dark:hover:text-red-400 transition-all" title="حذف"><TrashIcon className="w-5 h-5" /></button>
+                        {hasPermission('edit_contacts') && <button onClick={handleEdit} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title="تعديل"><PencilIcon className="w-5 h-5" /></button>}
+                        {hasPermission('delete_contacts') && <button onClick={handleDelete} className="p-2 rounded-lg text-gray-500 hover:bg-danger/10 hover:text-danger dark:text-gray-400 dark:hover:bg-danger/20 dark:hover:text-red-400 transition-all" title="حذف"><TrashIcon className="w-5 h-5" /></button>}
                         {isValidEmail && <button onClick={() => handleEmailAction('copy')} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 transition-all" title={`نسخ ${contact.email}`}><EmailIcon className="w-5 h-5" /></button>}
                         <button
                             onClick={handleCall}
@@ -130,7 +133,7 @@ const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, 
 
             {/* Expanded Menu for Mobile */}
             {isExpanded && (
-                <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-around items-center animate-fade-in">
+                <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-5 gap-1 animate-fade-in text-center">
                     <ActionButton onClick={handleCall} title={`اتصال بالرقم ${contact.extension}`} className="text-primary hover:bg-primary/10 dark:text-primary-light dark:hover:bg-primary/20">
                         <PhoneIcon className="w-6 h-6" />
                         <span className="text-xs">{contact.extension}</span>
@@ -139,18 +142,22 @@ const OfficeContactCard: React.FC<OfficeContactCardProps> = ({ contact, onEdit, 
                         <PaperAirplaneIcon className="w-6 h-6" />
                         <span className="text-xs">مشاركة</span>
                     </ActionButton>
-                    <ActionButton onClick={handleEdit} title="تعديل">
-                        <PencilIcon className="w-6 h-6" />
-                        <span className="text-xs">تعديل</span>
-                    </ActionButton>
-                    <ActionButton onClick={handleDelete} title="حذف" className="text-danger hover:bg-danger/10">
-                        <TrashIcon className="w-6 h-6" />
-                        <span className="text-xs">حذف</span>
-                    </ActionButton>
+                    {hasPermission('edit_contacts') && (
+                        <ActionButton onClick={handleEdit} title="تعديل">
+                            <PencilIcon className="w-6 h-6" />
+                            <span className="text-xs">تعديل</span>
+                        </ActionButton>
+                    )}
+                    {hasPermission('delete_contacts') && (
+                        <ActionButton onClick={handleDelete} title="حذف" className="text-danger hover:bg-danger/10">
+                            <TrashIcon className="w-6 h-6" />
+                            <span className="text-xs">حذف</span>
+                        </ActionButton>
+                    )}
                     {isValidEmail && (
                         <ActionButton onClick={(e) => { e.stopPropagation(); handleEmailAction('copy'); }} title="نسخ البريد" className="text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50">
                             <EmailIcon className="w-6 h-6" />
-                            <span className="text-xs">نسخ البريد</span>
+                            <span className="text-xs">نسخ</span>
                         </ActionButton>
                     )}
                 </div>

@@ -1,26 +1,73 @@
-import React, { useState } from 'react';
-import { UserIcon, KeyIcon, ArrowRightOnRectangleIcon } from '../icons/Icons';
+
+import React, { useState, useEffect } from 'react';
+import { UserIcon, KeyIcon, ArrowRightOnRectangleIcon, CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '../icons/Icons';
 import { tabukHealthClusterLogoMain } from './Logo';
 import ThemeToggle from './ThemeToggle';
+import { useAuth } from '../contexts/AuthContext';
 
-interface LoginScreenProps {
-    onLogin: () => void;
-}
+type NotificationType = 'success' | 'error' | 'info';
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+const LoginScreen: React.FC = () => {
+    const { verifyCredentials, performLogin } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Hardcoded credentials for demonstration
-        if (username === 'admin' && password === '1234') {
-            onLogin();
-        } else {
-            setError('اسم المستخدم أو كلمة المرور غير صحيحة.');
-            setPassword('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [notification, setNotification] = useState<{ message: string; type: NotificationType } | null>(null);
+    const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
+    const [inlineErrorMessage, setInlineErrorMessage] = useState<string | null>(null);
+    
+    useEffect(() => {
+        const logoutMessage = sessionStorage.getItem('logoutMessage');
+        if (logoutMessage) {
+            showNotification(logoutMessage, 'info', 2000);
+            sessionStorage.removeItem('logoutMessage');
         }
+    }, []);
+
+    const showNotification = (message: string, type: NotificationType, duration: number = 2000) => {
+        setNotification({ message, type });
+        setTimeout(() => {
+            setNotification(null);
+        }, duration);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setNotification(null);
+        setForgotPasswordMessage(null);
+        setInlineErrorMessage(null);
+        setIsSubmitting(true);
+
+        const result = await verifyCredentials(username, password);
+        
+        if (result === 'INACTIVE_ACCOUNT') {
+            setInlineErrorMessage('الحساب غير مفعل الرجاء التواصل مع الدعم التقني');
+            setIsSubmitting(false);
+        } else if (result) {
+            showNotification('تم تسجيل الدخول بنجاح!', 'success', 2000);
+            setTimeout(() => {
+                performLogin(result);
+            }, 2000); // Delay redirect to show message
+        } else {
+            showNotification('اسم المستخدم أو كلمة المرور غير صحيحة.', 'error', 3000);
+            setPassword('');
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleForgotPassword = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setInlineErrorMessage(null);
+        setForgotPasswordMessage('يرجى التواصل مع قسم الدعم الفني للمساعدة.');
+        setTimeout(() => {
+            setForgotPasswordMessage(null);
+        }, 5000); // Hide after 5 seconds
+    };
+    
+    const notificationConfig = {
+        success: { icon: <CheckCircleIcon className="h-5 w-5"/>, className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+        error: { icon: <XCircleIcon className="h-5 w-5"/>, className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+        info: { icon: <InformationCircleIcon className="h-5 w-5"/>, className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
     };
 
     return (
@@ -50,12 +97,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                                     id="username"
                                     type="text"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    onChange={(e) => {
+                                        setUsername(e.target.value);
+                                        setInlineErrorMessage(null);
+                                    }}
                                     placeholder="اسم المستخدم"
-                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white ${
-                                        username ? 'bg-accent text-gray-900' : 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                                    }`}
+                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white`}
                                     required
+                                    autoComplete="username"
                                 />
                             </div>
                         </div>
@@ -69,28 +118,60 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                                     id="password"
                                     type="password"
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                        setInlineErrorMessage(null);
+                                    }}
                                     placeholder="كلمة المرور"
-                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white ${
-                                        password ? 'bg-accent text-gray-900' : 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
-                                    }`}
+                                    className={`w-full pr-10 pl-4 py-3 border-2 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition dark:focus:bg-gray-900 dark:focus:text-white bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white`}
                                     required
+                                    autoComplete="current-password"
                                 />
                             </div>
+                            <div className="text-left mt-2">
+                                <button
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    className="text-sm font-semibold text-primary hover:underline focus:outline-none dark:text-primary-light"
+                                >
+                                    نسيت كلمة السر؟
+                                </button>
+                            </div>
+                            {forgotPasswordMessage && (
+                                <div className="mt-2 p-2.5 rounded-lg flex items-center justify-center gap-2 animate-fade-in font-semibold text-sm bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <InformationCircleIcon className="h-5 w-5"/>
+                                    <span>{forgotPasswordMessage}</span>
+                                </div>
+                            )}
+                            {inlineErrorMessage && (
+                                <div className="mt-2 p-2.5 rounded-lg flex items-center justify-center gap-2 animate-fade-in font-semibold text-sm bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                    <XCircleIcon className="h-5 w-5"/>
+                                    <span>{inlineErrorMessage}</span>
+                                </div>
+                            )}
                         </div>
-
-                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         
                         <button
                             type="submit"
-                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dark text-white font-bold py-3 px-4 rounded-lg hover:from-primary-dark hover:to-primary transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            disabled={isSubmitting}
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dark text-white font-bold py-3 px-4 rounded-lg hover:from-primary-dark hover:to-primary transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            <span>تسجيل الدخول</span>
-                            <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                            {isSubmitting ? 'جاري الدخول...' : 'تسجيل الدخول'}
+                            {!isSubmitting && <ArrowRightOnRectangleIcon className="h-5 w-5" />}
                         </button>
                     </form>
                 </div>
-                <p className="text-center text-gray-500 text-sm mt-6 dark:text-gray-400">
+
+                <div className="h-16 mt-2 flex items-center justify-center">
+                    {notification && (
+                        <div className={`w-full text-center p-3 rounded-lg flex items-center justify-center gap-2 animate-fade-in font-semibold text-sm ${notificationConfig[notification.type].className}`}>
+                            {notificationConfig[notification.type].icon}
+                            <span>{notification.message}</span>
+                        </div>
+                    )}
+                </div>
+
+                <p className="text-center text-gray-500 text-sm dark:text-gray-400">
                     🌿 بيانات دقيقة.. تواصل أسرع 🌿
                 </p>
                  <p className="text-center text-gray-400 text-xs mt-6 dark:text-gray-500">

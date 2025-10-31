@@ -1,7 +1,9 @@
 
+
 import React from 'react';
 import { Task } from '../types';
 import { PencilIcon, TrashIcon, CalendarDaysIcon, CheckIcon } from '../icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TaskCardProps {
     task: Task;
@@ -11,6 +13,7 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onEdit, onDelete }) => {
+    const { hasPermission } = useAuth();
     
     const formattedDate = task.due_date 
         ? new Date(task.due_date + 'T00:00:00.000Z').toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -47,20 +50,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onEdit, onD
 
             {/* Column 2: Action Buttons */}
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                <button
-                    onClick={onEdit}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-                    title="تعديل المهمة"
-                >
-                    <PencilIcon className="w-5 h-5" />
-                </button>
-                <button
-                    onClick={onDelete}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
-                    title="حذف المهمة"
-                >
-                    <TrashIcon className="w-5 h-5" />
-                </button>
+                {hasPermission('edit_tasks') && (
+                    <button
+                        onClick={onEdit}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+                        title="تعديل المهمة"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                    </button>
+                )}
+                {hasPermission('delete_tasks') && (
+                     <button
+                        onClick={onDelete}
+                        className="p-2 rounded-lg text-gray-400 hover:bg-danger/10 hover:text-danger dark:hover:bg-danger/20 dark:hover:text-red-400 transition-colors"
+                        title="حذف المهمة"
+                    >
+                        <TrashIcon className="w-5 h-5" />
+                    </button>
+                )}
             </div>
         </div>
     );

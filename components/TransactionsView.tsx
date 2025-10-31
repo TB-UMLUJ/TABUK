@@ -1,8 +1,11 @@
 
+
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Transaction } from '../types';
 import TransactionCard from './TransactionCard';
 import { SearchIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, PlusIcon } from '../icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TransactionsViewProps {
     transactions: Transaction[];
@@ -16,6 +19,7 @@ interface TransactionsViewProps {
 
 const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAddTransaction, onEditTransaction, onDeleteTransaction, onSelectTransaction, onImportClick, onExportClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const { hasPermission } = useAuth();
 
     const filteredTransactions = useMemo(() => {
         return transactions
@@ -32,14 +36,7 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
         <div className="mt-6 animate-fade-in relative pb-24">
             
              <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <button 
-                        onClick={onAddTransaction} 
-                        className="p-2.5 rounded-lg w-full sm:w-auto flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
-                        title="إضافة معاملة جديدة"
-                    >
-                        <PlusIcon className="h-5 w-5 ml-2" /> إضافة
-                    </button>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full flex-grow">
                          <input
                             type="text"
@@ -53,6 +50,15 @@ const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions, onAdd
                         </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {hasPermission('add_transaction') && (
+                            <button 
+                                onClick={onAddTransaction} 
+                                className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                                title="إضافة معاملة جديدة"
+                            >
+                                <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                            </button>
+                        )}
                         <button onClick={onImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
                             <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
                         </button>

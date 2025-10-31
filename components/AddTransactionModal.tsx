@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Transaction, Attachment, TransactionType, TransactionPlatform, TransactionStatus } from '../types';
@@ -126,28 +127,28 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="transaction_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم المعاملة<span className="text-danger mr-1">*</span></label>
-                                <input id="transaction_number" name="transaction_number" type="text" required value={transactionData.transaction_number} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                                <input id="transaction_number" name="transaction_number" type="text" required value={transactionData.transaction_number} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                             </div>
                              <div>
                                 <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التاريخ<span className="text-danger mr-1">*</span></label>
-                                <input id="date" name="date" type="date" required value={transactionData.date} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                                <input id="date" name="date" type="date" required value={transactionData.date} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                             </div>
                         </div>
                          <div>
                             <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الموضوع<span className="text-danger mr-1">*</span></label>
-                            <input id="subject" name="subject" type="text" required value={transactionData.subject} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <input id="subject" name="subject" type="text" required value={transactionData.subject} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                              <div>
                                 <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع المعاملة</label>
-                                <select id="type" name="type" value={transactionData.type} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <select id="type" name="type" value={transactionData.type} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="incoming">واردة</option>
                                     <option value="outgoing">صادرة</option>
                                 </select>
                             </div>
                             <div>
                                 <label htmlFor="platform" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المنصة</label>
-                                <select id="platform" name="platform" value={transactionData.platform} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <select id="platform" name="platform" value={transactionData.platform} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="Bain">نظام بين للمراسلات</option>
                                     <option value="MinisterEmail">البريد الوزاري للمدير</option>
                                     <option value="HospitalEmail">البريد الوزاري لادارة المستشفى</option>
@@ -155,7 +156,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
                             </div>
                             <div>
                                 <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-                                <select id="status" name="status" value={transactionData.status} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <select id="status" name="status" value={transactionData.status} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="new">جديدة</option>
                                     <option value="inProgress">قيد الإجراء</option>
                                     <option value="followedUp">تمت المتابعة</option>
@@ -165,7 +166,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen, onClo
                         </div>
                         <div>
                             <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ملاحظات (اختياري)</label>
-                            <textarea id="description" name="description" rows={3} value={transactionData.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <textarea id="description" name="description" rows={3} value={transactionData.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
 
                         <div>

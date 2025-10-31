@@ -1,9 +1,17 @@
-
-
 import React from 'react';
 import { BookOpenIcon, UserGroupIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
 
 type TabId = 'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
+
+// FIX: Defined a type for tab objects to include the optional 'requiredPermission' property.
+// This resolves the TypeScript error where 'requiredPermission' was accessed on an inferred type that did not include it.
+type TabInfo = {
+    id: TabId;
+    name: string;
+    icon: React.ElementType;
+    requiredPermission?: string;
+};
 
 interface TabsProps {
     activeTab: TabId;
@@ -11,7 +19,9 @@ interface TabsProps {
 }
 
 const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
-    const tabs = [
+    const { hasPermission } = useAuth();
+    
+    const allTabs: TabInfo[] = [
         { id: 'directory', name: 'الدليل', icon: BookOpenIcon },
         { id: 'orgChart', name: 'الهيكل التنظيمي', icon: UserGroupIcon },
         { id: 'officeDirectory', name: 'تحويلات المكاتب', icon: PhoneIcon },
@@ -19,11 +29,13 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
         { id: 'transactions', name: 'إدارة المعاملات', icon: DocumentDuplicateIcon },
         { id: 'statistics', name: 'الإحصائيات', icon: ChartBarIcon },
     ];
+    
+    const visibleTabs = allTabs.filter(tab => !tab.requiredPermission || hasPermission(tab.requiredPermission));
 
     return (
         <div className="hidden md:block border-b border-gray-200 mb-6 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-                {tabs.map(tab => (
+            <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                {visibleTabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabId)}

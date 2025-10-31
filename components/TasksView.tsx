@@ -1,8 +1,12 @@
 
+
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Task } from '../types';
 import TaskCard from './TaskCard';
 import { ArrowUpTrayIcon, ArrowDownTrayIcon, SearchIcon, PlusIcon } from '../icons/Icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface TasksViewProps {
     tasks: Task[];
@@ -16,6 +20,8 @@ interface TasksViewProps {
 
 const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onDeleteTask, onToggleComplete, onImportClick, onExportClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const { hasPermission } = useAuth();
+    const { addToast } = useToast();
 
     const { upcomingTasks, completedTasks } = useMemo(() => {
         const filtered = tasks.filter(task => 
@@ -27,6 +33,15 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
         const completed = filtered.filter(t => t.is_completed).sort((a, b) => (b.due_date || 'a').localeCompare(a.due_date || 'a'));
         return { upcomingTasks: upcoming, completedTasks: completed };
     }, [tasks, searchTerm]);
+    
+    const handleAction = (action: () => void, permission: string, permissionName: string) => {
+        if (hasPermission(permission)) {
+            action();
+        } else {
+            addToast('غير مصرح', `ليس لديك الصلاحية ل${permissionName}.`, 'error');
+        }
+    };
+
 
     const TaskList: React.FC<{taskList: Task[]}> = ({taskList}) => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -35,8 +50,8 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
                     key={task.id}
                     task={task}
                     onToggleComplete={() => onToggleComplete(task.id)}
-                    onEdit={() => onEditTask(task)}
-                    onDelete={() => onDeleteTask(task)}
+                    onEdit={() => handleAction(() => onEditTask(task), 'edit_tasks', 'تعديل المهام')}
+                    onDelete={() => handleAction(() => onDeleteTask(task), 'delete_tasks', 'حذف المهام')}
                 />
             ))}
         </div>
@@ -45,14 +60,7 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
     return (
         <div className="mt-6 animate-fade-in relative pb-24">
             <div className="bg-white p-4 rounded-xl shadow-md mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <button 
-                        onClick={onAddTask} 
-                        className="p-2.5 rounded-lg w-full sm:w-auto flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
-                        title="إضافة مهمة جديدة"
-                    >
-                        <PlusIcon className="h-5 w-5 ml-2" /> إضافة
-                    </button>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full flex-grow">
                         <input
                             type="text"
@@ -66,6 +74,15 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onEditTask, onD
                         </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {hasPermission('add_task') && (
+                            <button 
+                                onClick={onAddTask} 
+                                className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary text-white hover:bg-primary-dark transform hover:-translate-y-0.5"
+                                title="إضافة مهمة جديدة"
+                            >
+                                <PlusIcon className="h-5 w-5 ml-2" /> إضافة
+                            </button>
+                        )}
                         <button onClick={onImportClick} className="p-2.5 rounded-lg flex-1 sm:flex-none flex items-center justify-center transition-all duration-200 font-semibold bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30 transform hover:-translate-y-0.5">
                             <ArrowUpTrayIcon className="h-5 w-5 ml-2" /> <span className="hidden sm:inline">استيراد</span>
                         </button>

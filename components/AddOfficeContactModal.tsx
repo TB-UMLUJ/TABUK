@@ -123,21 +123,21 @@ const AddOfficeContactModal: React.FC<AddOfficeContactModalProps> = ({ isOpen, o
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 اسم المكتب<span className="text-danger mr-1">*</span>
                             </label>
-                            <input id="name" name="name" type="text" required value={contactData.name} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <input id="name" name="name" type="text" required value={contactData.name} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         <div>
                             <label htmlFor="extension" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 رقم التحويلة<span className="text-danger mr-1">*</span>
                             </label>
-                            <input id="extension" name="extension" type="text" required value={contactData.extension} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <input id="extension" name="extension" type="text" required value={contactData.extension} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                         <div>
                             <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الموقع (اختياري)</label>
-                            <input id="location" name="location" type="text" value={contactData.location || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <input id="location" name="location" type="text" value={contactData.location || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                         </div>
                          <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">البريد الإلكتروني (اختياري)</label>
-                            <input id="email" name="email" type="email" value={contactData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+                            <input id="email" name="email" type="email" value={contactData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                             {emailError && <p className="text-danger text-xs mt-1">{emailError}</p>}
                         </div>
                         
