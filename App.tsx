@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -599,7 +600,7 @@ const App: React.FC = () => {
                                 onExportClick={() => addToast('غير متوفر', 'تصدير المعاملات غير مدعوم حاليًا.', 'info')}
                             />
                          )}
-                         {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} />}
+                         {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} officeContacts={officeContacts} />}
                     </div>
                  )}
             </main>
