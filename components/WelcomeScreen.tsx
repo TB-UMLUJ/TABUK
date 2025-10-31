@@ -15,7 +15,8 @@ const WelcomeScreen: React.FC<{ currentUser: User | null }> = ({ currentUser }) 
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        const timeouts: number[] = [];
+        // FIX: Changed the type of the timeouts array to correctly handle the return type of `setTimeout`, which can vary between Node.js (Timeout object) and browser (number) environments.
+        const timeouts: ReturnType<typeof setTimeout>[] = [];
         const baseDelay = 100;
         const stepDelay = 750;
 

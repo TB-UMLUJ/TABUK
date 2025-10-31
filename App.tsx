@@ -29,6 +29,7 @@ import SettingsScreen from './components/SettingsScreen';
 import StatisticsView from './components/StatisticsView';
 import PromotionalModal from './components/PromotionalModal';
 import { useAuth } from './contexts/AuthContext';
+import { tabukHealthClusterLogoMain } from './components/Logo';
 
 
 declare const XLSX: any;
@@ -75,6 +76,7 @@ const App: React.FC = () => {
         message: '',
         onConfirm: () => {},
     });
+    const [showLogoSplash, setShowLogoSplash] = useState(false);
     
     const searchAndFilterRef = useRef<SearchAndFilterRef>(null);
     const genericFileInputRef = useRef<HTMLInputElement>(null);
@@ -159,6 +161,18 @@ const App: React.FC = () => {
             return () => clearTimeout(timer);
         }
     }, [justLoggedIn, clearJustLoggedIn]);
+
+    useEffect(() => {
+        // Only show splash if user is logged in and not in the process of just logging in (welcome screen is showing)
+        if (currentUser && !justLoggedIn) {
+            setShowLogoSplash(true);
+            const timer = setTimeout(() => {
+                setShowLogoSplash(false);
+            }, 2000); // Show for 2 seconds
+            
+            return () => clearTimeout(timer);
+        }
+    }, [currentUser, justLoggedIn]);
 
     useEffect(() => {
         setVisibleEmployeeCount(10);
@@ -690,7 +704,16 @@ const App: React.FC = () => {
             />
             
             <PromotionalModal isOpen={showPromoModal} onClose={() => setShowPromoModal(false)} />
-
+            
+            {showLogoSplash && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-fade-in-out pointer-events-none">
+                    <img
+                        src={tabukHealthClusterLogoMain}
+                        alt="شعار تجمع تبوك الصحي"
+                        className="w-40 h-auto"
+                    />
+                </div>
+            )}
         </div>
     );
 };

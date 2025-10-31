@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpenIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
+import { BookOpenIcon, UserGroupIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
 import { useAuth } from '../contexts/AuthContext';
 
 type TabId = 'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';
@@ -11,6 +11,7 @@ interface BottomNavBarProps {
 
 const allTabs: { id: TabId; label: string; icon: React.ElementType; requiredPermission?: string }[] = [
     { id: 'directory', label: 'الدليل', icon: BookOpenIcon },
+    { id: 'orgChart', label: 'الهيكلة', icon: UserGroupIcon },
     { id: 'officeDirectory', label: 'تحويلات', icon: PhoneIcon },
     { id: 'tasks', label: 'المهام', icon: BellIcon },
     { id: 'transactions', label: 'المعاملات', icon: DocumentDuplicateIcon },

@@ -144,61 +144,140 @@
       
       /* Toast Notifications */
       .toast-container {
-          position: fixed;
-          top: 1.5rem;
-          right: 1.5rem;
-          z-index: 100;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-end; /* Default for desktop */
       }
-      .toast {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          border-radius: 0.75rem;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-          width: 380px;
-          max-width: 90vw;
-          background-color: #2E3338;
-          color: white;
-          position: relative;
-          overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .toast::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          right: -80px; /* Flipped to the right side */
-          width: 200px;
-          height: 200px;
-          transform: translateY(-50%);
-          border-radius: 50%;
-          filter: blur(60px);
-          opacity: 0.35;
-          pointer-events: none;
-          z-index: 0;
-      }
-      /* This is to make sure the content is on top of the pseudo-element */
-      .toast > * {
-        position: relative;
-        z-index: 1;
-      }
-      .toast.toast-success::before { background: #25D366; }
-      .toast.toast-error::before { background: #F44336; }
-      .toast.toast-warning::before { background: #FFC107; }
-      .toast.toast-info::before { background: #2196F3; }
-      .toast.toast-deleted::before { background: #F44336; }
       
+      .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        width: 100%;
+        max-width: 22rem;
+        background-color: white;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        border: 1px solid #e5e7eb;
+      }
+      .dark .toast {
+        background-color: #212B36; /* gray-800 */
+        border-color: #454F5B; /* gray-700 */
+      }
+
+      .toast-icon-container {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+      }
+      
+      .toast-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      
+      .toast-content .title {
+        font-weight: 700;
+        font-size: 0.875rem;
+        color: #161C24; /* gray-900 */
+      }
+      .dark .toast-content .title {
+        color: #F7F9FA; /* gray-50 */
+      }
+
+      .toast-content .message {
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #5A7381; /* gray-600 */
+      }
+      .dark .toast-content .message {
+        color: #BDCBD3; /* gray-300 */
+      }
+
+      /* Success (Green) */
+      .toast-success .toast-icon-container { background-color: #E6F3EE; /* primary-light */ }
+      .toast-success .toast-icon { color: #008755; /* primary */ }
+      .dark .toast-success .toast-icon-container { background-color: rgba(0, 135, 85, 0.2); }
+      .dark .toast-success .toast-icon { color: #a3e6c7; }
+
+      /* Failed / Deleted (Red) */
+      .toast-failed .toast-icon-container { background-color: #fee2e2; }
+      .toast-failed .toast-icon { color: #C8102E; /* danger */ }
+      .dark .toast-failed .toast-icon-container { background-color: rgba(200, 16, 46, 0.2); }
+      .dark .toast-failed .toast-icon { color: #fca5a5; }
+      
+      /* Submitted / Info (Blue) */
+      .toast-submitted .toast-icon-container { background-color: #E5F5FF; /* brand-light */ }
+      .toast-submitted .toast-icon { color: #009ACE; /* brand */ }
+      .dark .toast-submitted .toast-icon-container { background-color: rgba(0, 154, 206, 0.2); }
+      .dark .toast-submitted .toast-icon { color: #7dd3fc; }
+
+      /* Pending / Warning (Amber) */
+      .toast-pending .toast-icon-container { background-color: #fffbeb; }
+      .toast-pending .toast-icon { color: #f59e0b; }
+      .dark .toast-pending .toast-icon-container { background-color: rgba(245, 158, 11, 0.2); }
+      .dark .toast-pending .toast-icon { color: #fcd34d; }
+      
+      /* Desktop Animation Keyframes */
       @keyframes toast-in-right {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
       }
+      @keyframes toast-out-right {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+      }
+
+      /* Default Animation Application (Desktop) */
       .animate-toast-in { animation: toast-in-right 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) forwards; }
-      .animate-toast-out { animation: fadeOut 0.5s ease-in-out forwards; }
+      .animate-toast-out { animation: toast-out-right 0.5s ease-in-out forwards; }
       
+      /* Mobile-specific styles for Toasts */
+      @media (max-width: 767px) { /* Tailwind's 'md' breakpoint is 768px */
+        .toast-container {
+          top: 1.5rem;
+          left: 1rem;
+          right: 1rem;
+          bottom: auto;
+          align-items: center;
+        }
+        
+        /* Mobile Animation Keyframes */
+        @keyframes toast-in-top {
+          from { transform: translateY(-100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toast-out-top {
+          from { transform: translateY(0); opacity: 1; }
+          to { transform: translateY(-100%); opacity: 0; }
+        }
+        
+        /* Override animation application for mobile */
+        .animate-toast-in {
+          animation: toast-in-top 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+        }
+        .animate-toast-out {
+          animation: toast-out-top 0.5s ease-in-out forwards;
+        }
+      }
+      
+      @keyframes fade-in-out {
+        0%, 100% { opacity: 0; transform: translateY(10px); }
+        10%, 90% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in-out {
+          animation: fade-in-out 2s ease-in-out forwards;
+      }
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script type="importmap">
