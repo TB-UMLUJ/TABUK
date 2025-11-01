@@ -278,6 +278,13 @@
       .animate-fade-in-out {
           animation: fade-in-out 2s ease-in-out forwards;
       }
+      @keyframes step-text-fade {
+        0%, 100% { opacity: 0; transform: translateY(8px); }
+        15%, 85% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-step-text-fade {
+        animation: step-text-fade 800ms ease-in-out forwards;
+      }
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script type="importmap">

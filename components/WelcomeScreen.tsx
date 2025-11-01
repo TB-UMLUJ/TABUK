@@ -1,33 +1,59 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import { tabukHealthClusterLogoMain } from './Logo';
-import { CheckIcon } from '../icons/Icons';
 
 const steps = [
-    { id: 1, progress: 10, text: "جارٍ التحقق من بيانات الدخول…" },
-    { id: 2, progress: 35, text: "جارٍ الاتصال بقاعدة البيانات…" },
-    { id: 3, progress: 60, text: "جارٍ تحميل بيانات المستخدم…" },
-    { id: 4, progress: 85, text: "تحضير الواجهة الرئيسية…" },
-    { id: 5, progress: 100, text: "تم تسجيل الدخول بنجاح 🎉" }
+    { id: 1, duration: 800, text: "التحقق من الهوية..." },
+    { id: 2, duration: 800, text: "تجهيز بيئة العمل..." },
+    { id: 3, duration: 800, text: "جلب أحدث البيانات..." },
+    { id: 4, duration: 800, text: "وضع اللمسات الأخيرة..." },
+    { id: 5, duration: 800, text: "أهلاً بك في منصة تجمع تبوك الصحي!" }
 ];
 
 const WelcomeScreen: React.FC<{ currentUser: User | null }> = ({ currentUser }) => {
     const [progress, setProgress] = useState(0);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const animationFrameId = useRef<number | null>(null);
+    const startTimeRef = useRef<number | null>(null);
 
     useEffect(() => {
-        // FIX: Changed the type of the timeouts array to correctly handle the return type of `setTimeout`, which can vary between Node.js (Timeout object) and browser (number) environments.
-        const timeouts: ReturnType<typeof setTimeout>[] = [];
-        const baseDelay = 100;
-        const stepDelay = 750;
+        const stepTimeouts: ReturnType<typeof setTimeout>[] = [];
+        let cumulativeTime = 0;
 
         steps.forEach((step, index) => {
-            timeouts.push(setTimeout(() => {
-                setProgress(step.progress);
-            }, baseDelay + index * stepDelay));
+            stepTimeouts.push(setTimeout(() => {
+                setCurrentStepIndex(index);
+            }, cumulativeTime));
+            cumulativeTime += step.duration;
         });
+
+        // Total duration for the screen is cumulativeTime (4000ms).
+        // We make the animation a bit faster to ensure it completes before the component unmounts.
+        const totalAnimationDuration = 3800; 
+
+        const animateProgress = (timestamp: number) => {
+            if (!startTimeRef.current) {
+                startTimeRef.current = timestamp;
+            }
+            const elapsedTime = timestamp - startTimeRef.current;
+            
+            if (elapsedTime < totalAnimationDuration) {
+                const newProgress = (elapsedTime / totalAnimationDuration) * 100;
+                setProgress(newProgress);
+                animationFrameId.current = requestAnimationFrame(animateProgress);
+            } else {
+                setProgress(100); // Ensure it hits 100% and stops the animation.
+            }
+        };
         
+        animationFrameId.current = requestAnimationFrame(animateProgress);
+
         return () => {
-            timeouts.forEach(clearTimeout);
+            stepTimeouts.forEach(clearTimeout);
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
         };
     }, []);
 
@@ -49,60 +75,44 @@ const WelcomeScreen: React.FC<{ currentUser: User | null }> = ({ currentUser }) 
                 />
             </div>
             
-            <div className="w-full max-w-sm">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-8">
+            <div className="w-full max-w-md">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
                     مرحبا بعودتك، {currentUser.full_name}
                 </h2>
 
-                <div className="relative pr-5"> {/* Padding for alignment */}
-                    
-                    <ul className="relative">
-                        {/* Vertical track lines */}
-                        <div className="absolute right-[18px] top-0 bottom-0 w-1.5 bg-accent-light rounded-full" style={{ transform: 'translateX(50%)' }} />
+                <div className="h-12 flex items-center justify-center mb-4">
+                     <p 
+                        key={currentStepIndex} 
+                        className="text-gray-600 dark:text-gray-400 font-semibold animate-step-text-fade"
+                     >
+                        {steps[currentStepIndex].text}
+                     </p>
+                </div>
+                
+                <div className="relative w-full pt-5">
+                    <div 
+                        className="absolute top-0 text-xs font-bold text-primary dark:text-primary-light"
+                        style={{ 
+                            right: `${progress}%`, 
+                            transform: 'translateX(50%)',
+                            minWidth: '32px', // to fit 100%
+                        }}
+                    >
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden shadow-inner">
                         <div 
-                            className="absolute right-[18px] top-0 w-1.5 bg-primary rounded-full transition-all duration-500 ease-linear"
+                            className="bg-gradient-to-r from-teal-400 to-primary h-2.5 rounded-full"
                             style={{ 
-                                height: `${progress}%`,
-                                transform: 'translateX(50%)'
+                                width: `${progress}%`,
                             }}
                         />
-
-                        {steps.map((step, index) => {
-                            const isCompleted = progress >= step.progress;
-                            
-                            const firstIncompleteIndex = steps.findIndex(s => progress < s.progress);
-                            const isActive = firstIncompleteIndex !== -1 && index === firstIncompleteIndex;
-
-                            let nodeClasses = "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative z-10 flex-shrink-0";
-                            let textClasses = "font-semibold transition-colors duration-300 text-right";
-
-                            if (isCompleted) {
-                                nodeClasses += " bg-primary border-4 border-gray-50 dark:border-gray-900";
-                                textClasses += " text-gray-800 dark:text-white";
-                            } else if (isActive) {
-                                nodeClasses += " bg-white dark:bg-gray-900 ring-4 ring-accent-dark";
-                                textClasses += " text-gray-700 dark:text-gray-300";
-                            } else {
-                                nodeClasses += " bg-accent-light border-4 border-gray-50 dark:border-gray-900";
-                                textClasses += " text-gray-400 dark:text-gray-500";
-                            }
-
-                            return (
-                                <li key={step.id} className="flex items-center gap-4" style={{minHeight: '4.5rem'}}>
-                                    <div className={nodeClasses}>
-                                        {isCompleted && <CheckIcon className="w-6 h-6 text-white" />}
-                                    </div>
-                                    <p className={textClasses}>
-                                        {step.text}
-                                    </p>
-                                </li>
-                            );
-                        })}
-                    </ul>
+                    </div>
                 </div>
+
             </div>
             <p className="absolute bottom-6 text-center text-gray-400 text-xs dark:text-gray-500">
-                &copy; 2025 تجمع تبوك الصحي. جميع الحقوق محفوظة.
+                &copy; {new Date().getFullYear()} تجمع تبوك الصحي. جميع الحقوق محفوظة.
             </p>
         </div>
     );

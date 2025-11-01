@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Employee } from '../types';
-import { IdentificationIcon, PaperAirplaneIcon, EmailIcon, MapPinIcon } from '../icons/Icons';
+import { IdentificationIcon, PaperAirplaneIcon, EmailIcon, MapPinIcon, GlobeAltIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
 
 interface EmployeeCardProps {
@@ -104,14 +104,20 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onSelect }) => {
                         )}
                     </div>
 
-                    {/* Row 2: National ID and Email */}
-                    {(employee.national_id || (employee.email && employee.email.includes('@'))) && (
+                    {/* Row 2: National ID, Nationality and Email */}
+                    {(employee.national_id || employee.nationality || (employee.email && employee.email.includes('@'))) && (
                         <div className="flex items-center gap-4 flex-wrap">
                             {employee.national_id && (
                                <div className="flex items-center gap-1.5 min-w-0">
                                    <IdentificationIcon className="w-3.5 h-3.5 flex-shrink-0"/>
                                    <span className="truncate" title={`السجل المدني / الإقامة: ${employee.national_id}`}>{employee.national_id}</span>
                                </div>
+                            )}
+                            {employee.nationality && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <GlobeAltIcon className="w-3.5 h-3.5 flex-shrink-0"/>
+                                    <span className="truncate" title={`الجنسية: ${employee.nationality}`}>{employee.nationality}</span>
+                                </div>
                             )}
                             {employee.email && employee.email.includes('@') && (
                                 <a

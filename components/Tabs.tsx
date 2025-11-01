@@ -22,12 +22,12 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
     const { hasPermission } = useAuth();
     
     const allTabs: TabInfo[] = [
+        { id: 'statistics', name: 'الإحصائيات', icon: ChartBarIcon },
         { id: 'directory', name: 'الدليل', icon: BookOpenIcon },
-        { id: 'orgChart', name: 'الهيكل التنظيمي', icon: UserGroupIcon },
         { id: 'officeDirectory', name: 'تحويلات المكاتب', icon: PhoneIcon },
         { id: 'tasks', name: 'المهام والتذكيرات', icon: BellIcon },
         { id: 'transactions', name: 'إدارة المعاملات', icon: DocumentDuplicateIcon },
-        { id: 'statistics', name: 'الإحصائيات', icon: ChartBarIcon },
+        { id: 'orgChart', name: 'الهيكل التنظيمي', icon: UserGroupIcon },
     ];
     
     const visibleTabs = allTabs.filter(tab => !tab.requiredPermission || hasPermission(tab.requiredPermission));

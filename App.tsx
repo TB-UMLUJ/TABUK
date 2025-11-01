@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -49,7 +50,7 @@ const App: React.FC = () => {
 
     // UI & Filter State
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState<'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('directory');
+    const [activeTab, setActiveTab] = useState<'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics'>('statistics');
     const [isImporting, setIsImporting] = useState<boolean>(false);
     const [visibleEmployeeCount, setVisibleEmployeeCount] = useState(10);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -176,10 +177,6 @@ const App: React.FC = () => {
     }, [currentUser, justLoggedIn]);
 
     useEffect(() => {
-        setVisibleEmployeeCount(10);
-    }, [searchTerm]);
-
-    useEffect(() => {
         if (currentUser) {
             const today = new Date().toISOString().slice(0, 10);
             const dismissedToday = localStorage.getItem('promoModalDismissedToday');
@@ -267,27 +264,66 @@ const App: React.FC = () => {
         reader.onload = async (e) => {
             try {
                 const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-                const newEmployees = json.map((row): Omit<Employee, 'id'> => ({
-                    employee_id: String(row['الرقم الوظيفي'] || ''),
-                    full_name_ar: String(row['الاسم باللغة العربية'] || ''),
-                    full_name_en: String(row['الاسم باللغة الإنجليزية'] || ''),
-                    job_title: String(row['المسمى الوظيفي'] || ''),
-                    department: String(row['القطاع'] || ''),
-                    center: String(row['المركز'] || ''),
-                    phone_direct: String(row['رقم الجوال'] || ''),
-                    email: String(row['البريد الإلكتروني'] || ''),
-                    national_id: String(row['السجل المدني / الإقامة'] || ''),
-                    nationality: String(row['الجنسية'] || ''),
-                    gender: String(row['الجنس'] || ''),
-                    date_of_birth: row['تاريخ الميلاد'] ? new Date((row['تاريخ الميلاد'] - (25567 + 1)) * 86400 * 1000).toISOString() : undefined,
-                    classification_id: String(row['رقم التصنيف'] || ''),
-                }));
+                const parseExcelDate = (excelDate: any): string | undefined => {
+                    if (!excelDate) return undefined;
+    
+                    let date: Date;
+                    let isLikelyUtc = false;
+    
+                    if (excelDate instanceof Date) {
+                        date = excelDate;
+                    } else if (typeof excelDate === 'number') {
+                        date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+                        isLikelyUtc = true;
+                    } else if (typeof excelDate === 'string') {
+                        date = new Date(excelDate);
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(excelDate.trim())) {
+                             isLikelyUtc = true;
+                        }
+                    } else {
+                        return undefined;
+                    }
+    
+                    if (isNaN(date.getTime())) return undefined;
+    
+                    const year = isLikelyUtc ? date.getUTCFullYear() : date.getFullYear();
+                    const month = isLikelyUtc ? date.getUTCMonth() : date.getMonth();
+                    const day = isLikelyUtc ? date.getUTCDate() : date.getDate();
+    
+                    const finalDate = new Date(Date.UTC(year, month, day));
+                    
+                    return finalDate.toISOString();
+                };
 
+                const newEmployees = json
+                    .map((row): Omit<Employee, 'id'> => ({
+                        employee_id: String(row['الرقم الوظيفي'] || '').trim(),
+                        full_name_ar: String(row['الاسم باللغة العربية'] || '').trim(),
+                        full_name_en: String(row['الاسم باللغة الإنجليزية'] || '').trim(),
+                        job_title: String(row['المسمى الوظيفي'] || '').trim(),
+                        department: String(row['القطاع'] || '').trim(),
+                        center: String(row['المركز'] || '').trim(),
+                        phone_direct: String(row['رقم الجوال'] || '').trim(),
+                        email: String(row['البريد الإلكتروني'] || '').trim(),
+                        national_id: String(row['السجل المدني / الإقامة'] || '').trim(),
+                        nationality: String(row['الجنسية'] || '').trim(),
+                        gender: String(row['الجنس'] || '').trim(),
+                        date_of_birth: parseExcelDate(row['تاريخ الميلاد']),
+                        classification_id: String(row['رقم التصنيف'] || '').trim(),
+                    }))
+                    .filter(emp => emp.employee_id && emp.full_name_ar);
+
+                if (newEmployees.length === 0) {
+                    addToast('لا توجد بيانات', 'لم يتم العثور على موظفين صالحين في الملف.', 'warning');
+                    setIsImporting(false);
+                    return;
+                }
+                
                 const { data: upsertedData, error } = await supabase.from('employees').upsert(newEmployees, { onConflict: 'employee_id' }).select();
 
                 if (error) throw error;
@@ -379,11 +415,17 @@ const App: React.FC = () => {
                 const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
                 const newContacts = json.map(row => ({
-                    name: String(row['اسم المكتب'] || ''),
-                    extension: String(row['التحويلة'] || ''),
-                    location: String(row['الموقع'] || ''),
-                    email: String(row['البريد الإلكتروني'] || ''),
-                }));
+                    name: String(row['اسم المكتب'] || '').trim(),
+                    extension: String(row['التحويلة'] || '').trim(),
+                    location: String(row['الموقع'] || '').trim(),
+                    email: String(row['البريد الإلكتروني'] || '').trim(),
+                })).filter(c => c.name);
+
+                if (newContacts.length === 0) {
+                    addToast('لا توجد بيانات', 'لم يتم العثور على جهات اتصال صالحة في الملف.', 'warning');
+                    setIsImporting(false);
+                    return;
+                }
 
                 const { data: upsertedData, error } = await supabase.from('office_contacts').upsert(newContacts, { onConflict: 'name' }).select();
 
@@ -453,11 +495,17 @@ const App: React.FC = () => {
     const handleToggleTaskComplete = async (taskId: number) => {
         const task = tasks.find(t => t.id === taskId);
         if (task) {
-            const { data, error } = await supabase.from('tasks').update({ is_completed: !task.is_completed }).eq('id', taskId).select();
+            const newStatus = !task.is_completed;
+            const { data, error } = await supabase.from('tasks').update({ is_completed: newStatus }).eq('id', taskId).select();
             if (error) {
                 addToast('خطأ', `فشل تحديث حالة المهمة: ${error.message}`, 'error');
             } else if (data) {
                 setTasks(prev => prev.map(t => t.id === taskId ? data[0] : t));
+                if (newStatus) {
+                    addToast('اكتملت المهمة', `"${task.title}" تم إكمالها.`, 'success');
+                } else {
+                    addToast('أعيد فتح المهمة', `"${task.title}" أعيدت إلى المهام القادمة.`, 'info');
+                }
             }
         }
     };
@@ -600,7 +648,7 @@ const App: React.FC = () => {
                                 onExportClick={() => addToast('غير متوفر', 'تصدير المعاملات غير مدعوم حاليًا.', 'info')}
                             />
                          )}
-                         {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} officeContacts={officeContacts} />}
+                         {activeTab === 'statistics' && <StatisticsView employees={employees} transactions={transactions} officeContacts={officeContacts} tasks={tasks} />}
                     </div>
                  )}
             </main>
