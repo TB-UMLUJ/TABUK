@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../lib/supabaseClient';
-import { Policy } from '../types';
+import { Policy, BrandAsset } from '../types';
 import { 
     CloseIcon, 
     ChevronLeftIcon, 
@@ -31,7 +31,8 @@ import {
     StarIcon, 
     PhoneIcon, 
     ChevronDownIcon, 
-    ArrowPathIcon 
+    ArrowPathIcon,
+    SwatchIcon
 } from '../icons/Icons';
 import AboutModal from './AboutModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -40,6 +41,7 @@ import UserRoleManagementView from './UserRoleManagementView';
 import ActivityLogView from './ActivityLogView';
 import { useToast } from '../contexts/ToastContext';
 import AddPolicyModal from './AddPolicyModal';
+import AddBrandAssetModal from './AddBrandAssetModal';
 import ConfirmationModal from './ConfirmationModal';
 import { logActivity } from '../lib/activityLogger';
 import WebAuthnManagementView from './WebAuthnManagementView';
@@ -56,10 +58,10 @@ type SettingsView =
     | 'userRoleManagement' 
     | 'activityLog' 
     | 'governance' 
+    | 'brandIdentity'
     | 'webauthn' 
     | 'userGuide' 
     | 'contactUs'
-    // New Pages
     | 'profile'
     | 'notifications'
     | 'appearance'
@@ -195,6 +197,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose }) => {
             case 'userRoleManagement': return <UserRoleManagementView />;
             case 'activityLog': return <ActivityLogView />;
             case 'governance': return <GovernanceCenterContent />;
+            case 'brandIdentity': return <BrandIdentityView />;
             case 'webauthn': return <WebAuthnManagementView />;
             case 'userGuide': return <UserGuide />;
             case 'contactUs': return <ContactUsView />;
@@ -230,6 +233,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isOpen, onClose }) => {
         userRoleManagement: 'إدارة المستخدمين والأدوار',
         activityLog: 'سجل النشاطات',
         governance: 'مركز الحوكمة والسياسات',
+        brandIdentity: 'دليل الهوية البصرية',
         webauthn: 'الدخول بالبصمة / الوجه',
         userGuide: 'دليل الاستخدام',
         contactUs: 'اتصل بنا',
@@ -340,6 +344,7 @@ const MainSettingsContent: React.FC<{
                         {canAccessGovernance && (
                             <SettingsItem icon={<BookOpenIcon className="w-6 h-6 text-emerald-600"/>} title="مركز الحوكمة والسياسات" onClick={() => props.onNavigate('governance')} />
                         )}
+                        <SettingsItem icon={<SwatchIcon className="w-6 h-6 text-purple-600"/>} title="دليل الهوية البصرية" onClick={() => props.onNavigate('brandIdentity')} />
                         {isAdmin && (
                             <>
                                 <SettingsItem icon={<ListBulletIcon className="w-6 h-6 text-pink-500"/>} title="إدارة القوائم المنسدلة" onClick={() => props.onNavigate('dropdowns')} />
@@ -390,8 +395,7 @@ const SettingsItem: React.FC<{ icon: React.ReactNode; title: string; onClick: ()
     </button>
 );
 
-// --- New Text-Only/Placeholder Views ---
-
+// ... [Retain all existing view components: ProfileView, NotificationsView, etc.] ...
 const ProfileView: React.FC = () => {
     const { currentUser } = useAuth();
     return (
@@ -713,8 +717,6 @@ const BugReportView: React.FC = () => (
     </div>
 );
 
-// --- End New Views ---
-
 const GovernanceCenterContent: React.FC = () => {
     const { hasPermission, currentUser } = useAuth();
     const { addToast } = useToast();
@@ -857,6 +859,149 @@ const GovernanceCenterContent: React.FC = () => {
                 onConfirm={handleDeletePolicy}
                 title="تأكيد الحذف"
                 message={`هل أنت متأكد من رغبتك في حذف السياسة "${policyToDelete?.title}"؟ سيتم حذف الملف المرفق أيضًا.`}
+            />
+        </div>
+    );
+};
+
+const BrandIdentityView: React.FC = () => {
+    const { hasPermission, currentUser } = useAuth();
+    const { addToast } = useToast();
+    const [assets, setAssets] = useState<BrandAsset[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [assetToDelete, setAssetToDelete] = useState<BrandAsset | null>(null);
+
+    const fetchAssets = useCallback(async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('brand_assets')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            setAssets(data || []);
+        } catch (error: any) {
+            addToast('خطأ', `فشل تحميل الهوية البصرية: ${error.message}`, 'error');
+        } finally {
+            setLoading(false);
+        }
+    }, [addToast]);
+
+    useEffect(() => {
+        fetchAssets();
+    }, [fetchAssets]);
+
+    const handleDeleteAsset = async () => {
+        if (!assetToDelete) return;
+
+        try {
+            if (assetToDelete.file_name) {
+                const { error: storageError } = await supabase.storage.from('brand-assets').remove([assetToDelete.file_name]);
+                if (storageError) console.error("Could not delete asset file:", storageError.message);
+            }
+            
+            const { error: dbError } = await supabase.from('brand_assets').delete().eq('id', assetToDelete.id);
+            if (dbError) throw dbError;
+
+            await logActivity(currentUser, 'DELETE_BRAND_ASSET', { assetId: assetToDelete.id, assetTitle: assetToDelete.title });
+
+            addToast('تم الحذف', `تم حذف "${assetToDelete.title}" بنجاح.`, 'deleted');
+            fetchAssets();
+        } catch (error: any) {
+             addToast('خطأ', `فشل حذف الملف: ${error.message}`, 'error');
+        } finally {
+            setAssetToDelete(null);
+        }
+    };
+
+    // Allow admins or policy managers to edit brand assets
+    const canManage = hasPermission('manage_users') || hasPermission('manage_policies');
+
+    if (loading) {
+        return <div className="flex justify-center items-center py-20"><div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 dark:border-gray-600 border-t-primary"></div></div>;
+    }
+
+    return (
+        <div className="animate-fade-in">
+            <div className="flex justify-between items-center mb-6">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    يمكنك هنا استعراض وتحميل جميع ملفات الهوية البصرية المعتمدة.
+                </p>
+                {canManage && (
+                    <button onClick={() => setShowAddModal(true)} className="btn btn-primary gap-2 text-sm">
+                        <PlusIcon className="w-4 h-4"/>
+                        إضافة ملف
+                    </button>
+                )}
+            </div>
+            
+            {assets.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {assets.map(asset => (
+                        <div key={asset.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                            {/* Preview Area */}
+                            <div className="h-40 bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center relative overflow-hidden">
+                                {asset.file_url && (asset.file_name?.endsWith('.png') || asset.file_name?.endsWith('.jpg') || asset.file_name?.endsWith('.jpeg') || asset.file_name?.endsWith('.svg')) ? (
+                                    <img src={asset.file_url} alt={asset.title} className="h-full w-full object-contain p-4" />
+                                ) : (
+                                    <div className="text-gray-400 dark:text-gray-500 flex flex-col items-center">
+                                        <CloudArrowUpIcon className="w-12 h-12 mb-2 opacity-50" />
+                                        <span className="text-xs uppercase tracking-wider">{asset.asset_type}</span>
+                                    </div>
+                                )}
+                                {/* Hover Overlay for Actions */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
+                                    {asset.file_url && (
+                                        <a href={asset.file_url} download target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-gray-800 hover:text-primary transition-colors" title="تحميل">
+                                            <ArrowDownTrayIcon className="w-5 h-5" />
+                                        </a>
+                                    )}
+                                    {canManage && (
+                                        <button onClick={() => setAssetToDelete(asset)} className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 transition-colors" title="حذف">
+                                            <TrashIcon className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Info Area */}
+                            <div className="p-4">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{asset.title}</h4>
+                                        <span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                            {asset.asset_type === 'logo' ? 'شعار' : asset.asset_type === 'font' ? 'خط' : asset.asset_type === 'icon' ? 'أيقونة' : asset.asset_type === 'template' ? 'قالب' : 'أخرى'}
+                                        </span>
+                                    </div>
+                                </div>
+                                {asset.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">{asset.description}</p>}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12 px-4 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                    <SwatchIcon className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+                    <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">لا توجد ملفات هوية مضافة</p>
+                    {canManage && <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">قم برفع الشعارات والملفات الأساسية هنا.</p>}
+                </div>
+            )}
+
+            <AddBrandAssetModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSaveSuccess={() => {
+                    fetchAssets();
+                }}
+            />
+
+            <ConfirmationModal
+                isOpen={!!assetToDelete}
+                onClose={() => setAssetToDelete(null)}
+                onConfirm={handleDeleteAsset}
+                title="تأكيد الحذف"
+                message={`هل أنت متأكد من حذف "${assetToDelete?.title}"؟`}
             />
         </div>
     );

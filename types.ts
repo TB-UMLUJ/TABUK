@@ -177,6 +177,18 @@ export interface Policy {
   display_file_name?: string | null; // اسم الملف الأصلي
 }
 
+// --- نوع جديد للهوية البصرية ---
+export interface BrandAsset {
+  id: number;
+  created_at: string;
+  title: string;
+  description?: string;
+  asset_type?: 'logo' | 'font' | 'template' | 'icon' | 'other';
+  file_name?: string | null;
+  file_url?: string | null;
+  display_file_name?: string | null;
+}
+
 // --- إجراءات جديدة لسجل النشاط ---
 export type ActivityAction =
   | 'LOGIN'
@@ -185,7 +197,8 @@ export type ActivityAction =
   | 'CREATE_CONTACT' | 'UPDATE_CONTACT' | 'DELETE_CONTACT' | 'IMPORT_CONTACTS'
   | 'CREATE_TASK' | 'UPDATE_TASK' | 'DELETE_TASK' | 'COMPLETE_TASK'
   | 'CREATE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION_STATUS'
-  | 'CREATE_POLICY' | 'UPDATE_POLICY' | 'DELETE_POLICY';
+  | 'CREATE_POLICY' | 'UPDATE_POLICY' | 'DELETE_POLICY'
+  | 'CREATE_BRAND_ASSET' | 'DELETE_BRAND_ASSET';
 
 // --- أنواع جديدة للبحث الشامل ---
 export interface GlobalSearchResults {
