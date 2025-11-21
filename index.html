@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>تجمع تبوك الصحي</title>
+    <link rel="icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#008755">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+      /* ==========================================================================
+   1. الأنماط الأساسية والجوال والعامة
+   ========================================================================== */
+html {
+  font-size: 93.75%; /* 15px / 16px */
+}
+
+body {
+  font-family: 'Zain', sans-serif;
+}
+
+.dark {
+  background-color: #161C24; /* gray-900 */
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+/* منع التكبير في iOS عند التركيز بضمان أن حجم الخط لا يقل عن 16 بكسل */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* محاذاة النص لليمين للحقول النصية */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+textarea,
+select {
+  text-align: right;
+}
+
+/* 
+   إصلاح شامل لحقول التاريخ (خاصة لمشاكل iOS والنص المعكوس أو الخارج عن الإطار):
+*/
+input[type="date"] {
+  direction: rtl;          /* للعرض الصحيح للنص العربي (العنصر النائب) */
+  text-align: right;       /* محاذاة النص لليمين */
+  -webkit-appearance: none; /* إزالة تنسيقات iOS الافتراضية التي تسبب مشاكل العرض */
+  appearance: none;
+  display: block;          /* ضمان سلوك الكتلة */
+  width: 100%;             /* عرض كامل */
+  min-width: 0;            /* منع التمدد الزائد في Flexbox */
+  max-width: 100%;         /* ضمان عدم الخروج عن الحاوية */
+  background-color: transparent; /* خلفية شفافة لضمان ظهور لون الخلفية المحدد في الكلاسات */
+}
+
+/* إصلاح محاذاة القيمة الداخلية لحقل التاريخ في iOS */
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: right; 
+  display: block;
+  width: 100%;
+}
+
+/* 
+   تخصيص أيقونة التقويم الافتراضية:
+   نقوم بتوسيعها لتغطي كامل الحقل وجعلها شفافة.
+   هذا يضمن أن النقر في أي مكان على الحقل (خاصة في الجوال) يفتح منتقي التاريخ،
+   ويمنع تعارض شكل الأيقونة الافتراضية مع الأيقونة المخصصة لدينا.
+*/
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+/* نص نائب أصغر على الجوال */
+input::placeholder,
+textarea::placeholder {
+  font-size: 0.87rem; /* ~13px on 15px base */
+}
+
+/* --- إشعارات Toast (تصميم الجوال أولاً) --- */
+.toast-container {
+  position: fixed;
+  top: 1.5rem; /* تم وضعه في الأعلى */
+  bottom: auto;
+  left: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start; /* محاذاة الأيقونة للأعلى */
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem; /* 12px */
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 1px solid;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  max-width: 95%;
+}
+
+.toast .toast-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem; /* هامش صغير للمحاذاة مع نص العنوان */
+}
+
+.toast .title {
+  font-size: 0.9rem;
+  line-height: 1.25rem;
+}
+
+.toast .message {
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  margin-top: 0.125rem;
+  opacity: 0.9;
+}
+
+/* success -> primary (نجاح -> أساسي) */
+.toast-success { background-color: rgba(230, 243, 238, 0.95); color: #006640; border-color: rgba(0, 135, 85, 0.2); }
+.toast-success .toast-icon { color: #008755; }
+.dark .toast-success { background-color: rgba(16, 60, 49, 0.85); color: #92E2C8; border-color: #2E594F; }
+.dark .toast-success .toast-icon { color: #92E2C8; }
+
+/* error/deleted -> danger (خطأ/محذوف -> خطر) */
+.toast-failed { background-color: rgba(254, 226, 226, 0.95); color: #b91c1c; border-color: rgba(200, 16, 46, 0.2); }
+.toast-failed .toast-icon { color: #C8102E; }
+.dark .toast-failed { background-color: rgba(64, 27, 34, 0.85); color: #F5A8B2; border-color: #632E38; }
+.dark .toast-failed .toast-icon { color: #F5A8B2; }
+
+/* warning -> yellow (تحذير -> أصفر) */
+.toast-pending { background-color: rgba(255, 251, 235, 0.95); color: #b45309; border-color: rgba(245, 158, 11, 0.2); }
+.toast-pending .toast-icon { color: #f59e0b; }
+.dark .toast-pending { background-color: rgba(67, 49, 16, 0.85); color: #FCD34D; border-color: #634A23; }
+.dark .toast-pending .toast-icon { color: #FCD34D; }
+
+/* info -> brand (معلومات -> علامة تجارية) */
+.toast-submitted { background-color: rgba(229, 245, 255, 0.95); color: #0076A2; border-color: rgba(0, 154, 206, 0.2); }
+.toast-submitted .toast-icon { color: #009ACE; }
+.dark .toast-submitted { background-color: rgba(17, 54, 77, 0.85); color: #A4E0F9; border-color: #27566F; }
+.dark .toast-submitted .toast-icon { color: #A4E0F9; }
+
+/* Custom scan success -> blue (نجاح مسح مخصص -> أزرق) */
+.toast-scan-success { background-color: rgba(219, 234, 254, 0.95); color: #1e3a8a; border-color: rgba(37, 99, 235, 0.3); }
+.toast-scan-success .toast-icon { color: #2563eb; }
+.dark .toast-scan-success { background-color: rgba(30, 41, 59, 0.85); color: #93c5fd; border-color: #334155; }
+.dark .toast-scan-success .toast-icon { color: #93c5fd; }
+
+
+/* الرسوم المتحركة الافتراضية (تصميم الجوال أولاً) */
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.animate-tab-content-in { animation: tab-content-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.animate-fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+.animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-modal-out { animation: modal-out 0.3s ease-out forwards; }
+.animate-modal-in-scale { animation: modal-in-scale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-modal-out-scale { animation: modal-out-scale 0.5s ease-out forwards; }
+.animate-backdrop-in { animation: backdrop-in 0.3s ease-out forwards; }
+.animate-backdrop-out { animation: backdrop-out 0.3s ease-out forwards; }
+.animate-slide-in-left { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-out-left { animation: slide-out-right 0.3s ease-out forwards; }
+.animate-fade-in-out { animation: fade-in-out 2s ease-in-out forwards; }
+.animate-step-text-fade { animation: step-text-fade 800ms ease-in-out forwards; }
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-toast-in { animation: toast-in-top 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) forwards; }
+.animate-toast-out { animation: toast-out-top 0.5s ease-in-out forwards; }
+
+.animate-stepper-content-in { animation: stepper-content-in 0.4s ease-out forwards; }
+.animate-stepper-content-out { animation: stepper-content-out 0.4s ease-in forwards; }
+.animate-pulse-strong { animation: pulse-strong 1.5s ease-in-out infinite; }
+.animate-checkmark { stroke-dasharray: 50; stroke-dashoffset: 50; animation: checkmark 0.4s 0.2s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+
+/* ==========================================================================
+   2. إطارات الحركة الرئيسية (Keyframes)
+   ========================================================================== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes tab-content-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes modal-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
+@keyframes modal-in-scale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes modal-out-scale { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+@keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slide-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slide-out-right { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+@keyframes fade-in-out { 0%, 100% { opacity: 0; transform: translateY(10px); } 10%, 90% { opacity: 1; transform: translateY(0); } }
+@keyframes step-text-fade { 0%, 100% { opacity: 0; transform: translateY(8px); } 15%, 85% { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 50% { opacity: .5; } }
+@keyframes stepper-content-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes stepper-content-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-20px); } }
+
+@keyframes checkmark { to { stroke-dashoffset: 0; } }
+
+@keyframes pulse-strong {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* رسوم متحركة لإشعارات الجوال (من الأعلى) */
+@keyframes toast-in-top { from { transform: translateY(-150%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes toast-out-top { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-150%); opacity: 0; } }
+
+/* رسوم متحركة لإشعارات سطح المكتب */
+@keyframes toast-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes toast-out-right { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+/* ==========================================================================
+   3. أنماط الأجهزة اللوحية وسطح المكتب (عرض أدنى: 768 بكسل)
+   ========================================================================== */
+@media (min-width: 768px) { /* نقطة توقف 'md' في Tailwind */
+  html {
+    font-size: 100%; /* استعادة حجم الخط الأساسي للشاشات الأكبر */
+  }
+  /* حجم خط النص النائب يتم التعامل معه الآن بواسطة المتصفح افتراضيًا على الشاشات الأكبر */
+
+  /* --- إشعارات Toast (تجاوزات لسطح المكتب) --- */
+  .toast-container {
+    top: 1.5rem;
+    bottom: auto;
+    left: auto;
+    right: 1.5rem;
+    align-items: flex-end;
+  }
+  
+  .animate-toast-in {
+    animation: toast-in-right 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+  }
+  .animate-toast-out {
+    animation: toast-out-right 0.5s ease-in-out forwards;
+  }
+}
+      /* === أنماط الأزرار اللامعة الجديدة === */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.5rem; /* 10 بكسل 24 بكسل */
+        border-radius: 9999px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        border: 1px solid;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+        box-shadow: 
+          inset 0 1px 1px rgba(255, 255, 255, 0.4), 
+          inset 0 -2px 3px rgba(0, 0, 0, 0.1),
+          0 2px 4px rgba(0, 0, 0, 0.15);
+        transform: translateY(0); /* إضافة تحويل أساسي لحالة نشطة سلسة */
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 
+          inset 0 1px 1px rgba(255, 255, 255, 0.5), 
+          inset 0 -2px 3px rgba(0, 0, 0, 0.1),
+          0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn:active:not(:disabled) {
+        transform: translateY(0px);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      /* الزر الأساسي (أخضر) - الإجراءات الرئيسية */
+      .btn-primary {
+        background: linear-gradient(to bottom, #00A76F, #008755);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      /* الزر الثانوي (رمادي) - إجراءات الإلغاء/الافتراضية */
+      .btn-secondary {
+        background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+        color: #454F5B;
+        text-shadow: none;
+        border-color: rgba(0, 0, 0, 0.1);
+      }
+      .dark .btn-secondary {
+        background: linear-gradient(to bottom, #4b5563, #374151);
+        color: #f9fafb;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      /* زر الخطر (أحمر) */
+      .btn-danger {
+        background: linear-gradient(to bottom, #d92d48, #C8102E);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      /* زر باهت/شبح للإجراءات الأقل أهمية */
+      .btn-muted {
+        background: linear-gradient(to bottom, rgba(229, 243, 238, 0.8), rgba(204, 230, 218, 0.8));
+        color: #006640;
+        text-shadow: none;
+        border-color: rgba(0, 135, 85, 0.2);
+      }
+      .dark .btn-muted {
+        background: linear-gradient(to bottom, rgba(30, 60, 50, 0.8), rgba(15, 45, 35, 0.8));
+        color: #92E2C8;
+        border-color: #2E594F;
+      }
+
+      /* زر أيقونة */
+      .btn-icon {
+        padding: 0;
+        width: 2.75rem; /* 44 بكسل */
+        height: 2.75rem;
+      }
+      .btn-icon svg {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      
+      /* أنماط جديدة لأزرار أيقونات الترويسة */
+      .header-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem; /* 44 بكسل */
+        height: 2.75rem; /* 44 بكسل */
+        border-radius: 9999px; /* دائرة كاملة */
+        background-color: transparent;
+        color: #454F5B; /* gray-700 (رمادي-700) */
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        cursor: pointer;
+      }
+      .header-icon-btn:hover {
+        background-color: #f3f4f6; /* gray-100 (رمادي-100) */
+      }
+      .dark .header-icon-btn {
+        color: #d1d5db; /* gray-300 (رمادي-300) */
+      }
+      .dark .header-icon-btn:hover {
+        background-color: #374151; /* gray-700 (رمادي-700) */
+      }
+      .header-icon-btn svg {
+        width: 1.5rem; /* 24 بكسل */
+        height: 1.5rem; /* 24 بكسل */
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Zain', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                light: '#E5F3EE',
+                DEFAULT: '#008755',
+                dark: '#006640',
+              },
+              accent: {
+                light: '#E2E1D2',
+                DEFAULT: '#9b945f',
+                dark: '#B5B197',
+              },
+              brand: {
+                light: '#E5F5FF',
+                DEFAULT: '#009ACE',
+                dark: '#0076A2',
+              },
+              danger: {
+                DEFAULT: '#C8102E',
+              },
+              gray: {
+                50: '#F7F9FA',
+                100: '#EFF2F3',
+                200: '#DEE3E6',
+                300: '#d1d5db',
+                400: '#9CB7C7',
+                500: '#7E8F99',
+                600: '#4b5563',
+                700: '#454F5B',
+                800: '#212B36',
+                900: '#161C24'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
