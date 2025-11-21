@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -8,7 +7,6 @@ import SearchAndFilter, { SearchAndFilterRef } from './components/SearchAndFilte
 import EmployeeList from './components/EmployeeList';
 import EmployeeProfileModal from './components/EmployeeProfileModal';
 import LoginScreen from './components/LoginScreen';
-import WelcomeScreen from './components/WelcomeScreen';
 import { useToast } from './contexts/ToastContext';
 import Tabs from './components/Tabs';
 import OrganizationalChartView from './components/OrganizationalChartView';
@@ -45,8 +43,6 @@ const App: React.FC = () => {
     const { currentUser, isAuthenticating } = useAuth();
     const { logos, isCrisisMode } = useTheme();
     const [showSettings, setShowSettings] = useState(false);
-    const [showWelcome, setShowWelcome] = useState(false);
-    const [lastUserId, setLastUserId] = useState<number | null>(null);
     
     // حالة البيانات
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -114,16 +110,6 @@ const App: React.FC = () => {
     const closeConfirmation = () => {
         setConfirmation({ isOpen: false, title: '', message: '', onConfirm: () => {} });
     };
-
-    // --- Welcome Screen Logic ---
-    useEffect(() => {
-        if (currentUser && currentUser.user_id !== lastUserId) {
-            setShowWelcome(true);
-            setLastUserId(currentUser.user_id);
-        } else if (!currentUser) {
-            setLastUserId(null);
-        }
-    }, [currentUser, lastUserId]);
 
     useEffect(() => {
         if (sessionStorage.getItem('appIsUpdating') === 'true') {
@@ -1176,10 +1162,6 @@ const App: React.FC = () => {
         );
     }
     
-    if (showWelcome && currentUser) {
-        return <WelcomeScreen currentUser={currentUser} onComplete={() => setShowWelcome(false)} />;
-    }
-
     if (!currentUser) {
         return <LoginScreen />;
     }
