@@ -295,7 +295,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, level = 0, isLast = false }) 
     );
 };
 
-const OrganizationalChartView: React.FC<{ employees: any[] }> = ({ employees }) => {
+const OrganizationalChartView: React.FC = () => {
     return (
         <div className="mt-6 animate-fade-in pb-24 md:pb-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border border-gray-200 dark:border-gray-700">

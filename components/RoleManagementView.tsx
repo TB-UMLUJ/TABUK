@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Role, Permission } from '../types';
+import { Role } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { PlusIcon, PencilIcon, ShieldCheckIcon, TrashIcon } from '../icons/Icons';
 import AddEditRoleModal from './AddEditRoleModal';
@@ -14,7 +13,7 @@ const roleNameMap: { [key: string]: string } = {
     'User': 'مستخدم'
 };
 
-const RoleManagementView: React.FC = () => {
+export const RoleManagementView: React.FC = () => {
     const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -115,36 +114,49 @@ const RoleManagementView: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {roles.map(role => (
-                    <div key={role.role_id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between group hover:border-primary/30 dark:hover:border-primary-light/30 transition-all">
-                        <div>
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-bold text-lg text-primary dark:text-primary-light">{roleNameMap[role.role_name] || role.role_name}</h3>
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 h-10 line-clamp-2">{role.description}</p>
-                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <p className="text-xs font-semibold text-gray-400 mb-2 uppercase">الصلاحيات الممنوحة</p>
-                                <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                    <ShieldCheckIcon className="w-4 h-4 text-green-500" />
-                                    {Array.isArray(role.role_permissions) && role.role_permissions.length > 0
-                                        ? `${role.role_permissions.length} صلاحيات`
-                                        : 'لا توجد صلاحيات'}
+                {roles.map(role => {
+                    const permissionsCount = role.role_permissions?.length || 0;
+                    return (
+                        <div key={role.role_id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between group hover:border-primary/30 dark:hover:border-primary-light/30 transition-all">
+                            <div>
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-bold text-lg text-primary dark:text-primary-light">{roleNameMap[role.role_name] || role.role_name}</h3>
+                                </div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 min-h-[40px]">{role.description}</p>
+                                <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-3">
+                                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">الصلاحيات</h4>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {permissionsCount > 0 ? (
+                                            (role.role_permissions as any[]).slice(0, 4).map((rp: any) => (
+                                                <span key={rp.permissions.permission_id} className="text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-md">
+                                                    {rp.permissions.permission_name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-xs text-gray-400">لا توجد صلاحيات</span>
+                                        )}
+                                        {permissionsCount > 4 && (
+                                            <span className="text-xs bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200 px-2 py-1 rounded-md">
+                                                +{permissionsCount - 4}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+                            <div className="mt-6 flex items-center justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <button onClick={() => handleEditPermissions(role)} className="btn btn-secondary btn-sm" title="تعديل الصلاحيات">
+                                    <ShieldCheckIcon className="w-4 h-4"/>
+                                </button>
+                                <button onClick={() => handleEditRole(role)} className="btn btn-secondary btn-sm" title="تعديل الدور">
+                                    <PencilIcon className="w-4 h-4"/>
+                                </button>
+                                 <button onClick={() => handleDeleteClick(role)} className="btn btn-danger-secondary btn-sm" title="حذف الدور">
+                                    <TrashIcon className="w-4 h-4"/>
+                                </button>
+                            </div>
                         </div>
-                        <div className="mt-5 flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-                            <button onClick={() => handleEditRole(role)} className="p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors" title="تعديل الاسم">
-                                <PencilIcon className="w-5 h-5" />
-                            </button>
-                             <button onClick={() => handleEditPermissions(role)} className="p-2 rounded-md text-primary hover:bg-primary/10 dark:text-primary-light dark:hover:bg-primary/20 transition-colors" title="تعديل الصلاحيات">
-                                <ShieldCheckIcon className="w-5 h-5" />
-                            </button>
-                            <button onClick={() => handleDeleteClick(role)} className="p-2 rounded-md text-danger hover:bg-danger/10 dark:text-red-400 dark:hover:bg-danger/20 transition-colors" title="حذف الدور">
-                                <TrashIcon className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <AddEditRoleModal
@@ -153,7 +165,7 @@ const RoleManagementView: React.FC = () => {
                 onSave={handleSaveRole}
                 roleToEdit={roleToEdit}
             />
-
+            
             <RolePermissionsModal
                 isOpen={isPermissionsModalOpen}
                 onClose={() => setIsPermissionsModalOpen(false)}
@@ -161,12 +173,12 @@ const RoleManagementView: React.FC = () => {
                 onSaveSuccess={fetchData}
             />
 
-            <ConfirmationModal
+            <ConfirmationModal 
                 isOpen={!!roleToDelete}
                 onClose={() => setRoleToDelete(null)}
                 onConfirm={handleConfirmDelete}
                 title="تأكيد حذف الدور"
-                message={`هل أنت متأكد من رغبتك في حذف الدور "${roleToDelete && (roleNameMap[roleToDelete.role_name] || roleToDelete.role_name)}"\u200E؟ لا يمكن التراجع عن هذا الإجراء.`}
+                message={`هل أنت متأكد من حذف دور "${roleToDelete?.role_name}"؟ لا يمكن التراجع عن هذا الإجراء.`}
             />
         </div>
     );

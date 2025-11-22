@@ -1,8 +1,6 @@
-
-
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { CloseIcon, ExclamationTriangleIcon } from '../icons/Icons';
+import { ExclamationTriangleIcon } from '../icons/Icons';
 
 interface ConfirmationModalProps {
     isOpen: boolean;

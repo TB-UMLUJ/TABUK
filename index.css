@@ -1,20 +1,8 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>تجمع تبوك الصحي</title>
-    <link rel="icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png" type="image/png">
-    <link rel="apple-touch-icon" href="https://i.ibb.co/zWXjmsRP/2e0622ca-655f-4fdd-99bd43691398.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#008755">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <style>
-      /* ==========================================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
    1. الأنماط الأساسية والجوال والعامة
    ========================================================================== */
 html {
@@ -27,14 +15,6 @@ body {
 
 .dark {
   background-color: #161C24; /* gray-900 */
-}
-
-.material-symbols-outlined {
-  font-variation-settings:
-  'FILL' 0,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
 }
 
 /* منع التكبير في iOS عند التركيز بضمان أن حجم الخط لا يقل عن 16 بكسل */
@@ -390,71 +370,29 @@ textarea::placeholder {
         width: 1.5rem; /* 24 بكسل */
         height: 1.5rem; /* 24 بكسل */
       }
-    </style>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Zain', 'sans-serif'],
-            },
-            colors: {
-              primary: {
-                light: '#E5F3EE',
-                DEFAULT: '#008755',
-                dark: '#006640',
-              },
-              accent: {
-                light: '#E2E1D2',
-                DEFAULT: '#9b945f',
-                dark: '#B5B197',
-              },
-              brand: {
-                light: '#E5F5FF',
-                DEFAULT: '#009ACE',
-                dark: '#0076A2',
-              },
-              danger: {
-                DEFAULT: '#C8102E',
-              },
-              gray: {
-                50: '#F7F9FA',
-                100: '#EFF2F3',
-                200: '#DEE3E6',
-                300: '#d1d5db',
-                400: '#9CB7C7',
-                500: '#7E8F99',
-                600: '#4b5563',
-                700: '#454F5B',
-                800: '#212B36',
-                900: '#161C24'
-              }
-            }
-          }
-        }
-      }
-    </script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
-    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm",
-    "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
-  }
+
+/* Crisis Mode Styles */
+.crisis-mode {
+  -webkit-filter: saturate(1.5) contrast(1.1);
+  filter: saturate(1.5) contrast(1.1);
 }
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
-  <body>
-    <div id="root"></div>
-    <div id="modal-root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
-</html>
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}

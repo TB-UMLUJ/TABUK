@@ -1,7 +1,5 @@
-
-
 import React from 'react';
-import { BookOpenIcon, UserGroupIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon, ClipboardDocumentListIcon } from '../icons/Icons';
+import { BookOpenIcon, UserGroupIcon, PhoneIcon, BellIcon, DocumentDuplicateIcon, ChartBarIcon } from '../icons/Icons';
 import { useAuth } from '../contexts/AuthContext';
 
 type TabId = 'directory' | 'orgChart' | 'officeDirectory' | 'tasks' | 'transactions' | 'statistics';

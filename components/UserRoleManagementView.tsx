@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import UserManagementView from './UserManagementView';
-import RoleManagementView from './RoleManagementView';
+// FIX: Change to a named import to resolve the error.
+import { RoleManagementView } from './RoleManagementView';
 import { UserIcon, ShieldCheckIcon } from '../icons/Icons';
 
 type ActiveTab = 'users' | 'roles';

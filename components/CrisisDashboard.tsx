@@ -1,21 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
     FireIcon, 
     PhoneIcon, 
     UserGroupIcon, 
-    CheckCircleIcon, 
-    ExclamationTriangleIcon
 } from '../icons/Icons';
-import { Task, Employee } from '../types';
+import { Employee } from '../types';
 
 interface CrisisDashboardProps {
     employees: Employee[];
-    tasks: Task[];
 }
 
-const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees, tasks }) => {
+const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees }) => {
     const { toggleCrisisMode } = useTheme();
     const [currentTime, setCurrentTime] = useState(new Date());
 

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
-import { Transaction, Attachment, TransactionType, TransactionPlatform, TransactionStatus, Employee, OfficeContact } from '../types';
+import { Transaction, Attachment, Employee, OfficeContact } from '../types';
 import { CloseIcon, DocumentDuplicateIcon, LightBulbIcon } from '../icons/Icons';
 import { useToast } from '../contexts/ToastContext';
 

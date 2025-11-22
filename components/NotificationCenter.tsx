@@ -5,10 +5,9 @@ import { BellIcon } from '../icons/Icons';
 
 interface NotificationCenterProps {
     isOpen: boolean;
-    onClose: () => void;
 }
 
-const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
+const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen }) => {
     const { notifications, markAllAsRead, unreadCount } = useNotifications();
 
     if (!isOpen) {

@@ -7,7 +7,6 @@ import { User, WebAuthnCredential } from '../types';
 import InactiveAccountModal from './InactiveAccountModal';
 import { supabase } from '../lib/supabaseClient';
 import { base64UrlToArrayBuffer, arrayBufferToBase64Url } from '../lib/webauthnHelpers';
-import { useToast } from '../contexts/ToastContext';
 import WebAuthnPromptModal from './WebAuthnPromptModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
 
@@ -112,7 +111,6 @@ const WelcomeAnimation: React.FC<{ onComplete: () => void; currentUser: BaseUser
 
 const LoginScreen: React.FC = () => {
     const { verifyCredentials, performLogin } = useAuth();
-    const { addToast } = useToast();
     const { logos } = useTheme();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

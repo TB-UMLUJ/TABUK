@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
@@ -77,11 +78,15 @@ const WebAuthnManagementView: React.FC = () => {
             }
             
             const response = newCredential.response as AuthenticatorAttestationResponse;
+            const publicKey = response.getPublicKey ? response.getPublicKey() : null;
+            if (!publicKey) {
+                throw new Error("لم يتم الحصول على المفتاح العام من الاستجابة.");
+            }
 
             const credentialData = {
                 user_id: currentUser.user_id,
                 credential_id: arrayBufferToBase64Url(newCredential.rawId),
-                public_key: arrayBufferToBase64Url(response.getPublicKey!()),
+                public_key: arrayBufferToBase64Url(publicKey),
                 transports: response.getTransports(),
             };
             

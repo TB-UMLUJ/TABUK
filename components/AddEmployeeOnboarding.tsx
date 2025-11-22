@@ -109,7 +109,6 @@ const AddEmployeeOnboarding: React.FC<AddEmployeeOnboardingProps> = ({ isOpen, o
     const [isAnimatingOut, setIsAnimatingOut] = useState(false);
     const [scanningDocId, setScanningDocId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [activeDocId, setActiveDocId] = useState<string | null>(null);
     const { addToast } = useToast();
     const isMobile = useMemo(() => typeof window !== 'undefined' && /Mobi/i.test(window.navigator.userAgent), []);
 
@@ -191,7 +190,7 @@ const AddEmployeeOnboarding: React.FC<AddEmployeeOnboardingProps> = ({ isOpen, o
             case 1: return <JobInfoStep {...stepProps} />;
             case 2: return <CertificatesStep {...stepProps} />;
             case 3: return <ContactInfoStep {...stepProps} />;
-            case 4: return <DocumentsStep {...{...stepProps, isMobile, setScanningDocId, fileInputRef, setActiveDocId}} />;
+            case 4: return <DocumentsStep {...{...stepProps, isMobile, setScanningDocId, fileInputRef}} />;
             default: return null;
         }
     };
@@ -271,7 +270,6 @@ const AddEmployeeOnboarding: React.FC<AddEmployeeOnboardingProps> = ({ isOpen, o
                     addToast('تم المسح بنجاح!', 'تم إرفاق المستند وجاهز للحفظ.', 'scan_success');
                 }
                 setScanningDocId(null);
-                setActiveDocId(null);
             }}/>
         </div>,
         modalRoot
@@ -366,7 +364,7 @@ const ContactInfoStep: React.FC<{ data: typeof initialEmployeeState; updateData:
     </StepWrapper>
 );
 
-const DocumentsStep: React.FC<{ data: typeof initialEmployeeState; updateData: Function; isMobile: boolean; setScanningDocId: Function; fileInputRef: React.RefObject<HTMLInputElement>, setActiveDocId: Function }> = ({ data, updateData, isMobile, setScanningDocId, fileInputRef, setActiveDocId }) => (
+const DocumentsStep: React.FC<{ data: typeof initialEmployeeState; updateData: Function; isMobile: boolean; setScanningDocId: Function; fileInputRef: React.RefObject<HTMLInputElement> }> = ({ data, updateData, isMobile, setScanningDocId, fileInputRef }) => (
     <StepWrapper title="ملفات الموظف" icon={<DocumentTextIcon className="w-6 h-6"/>}>
         <input type="file" ref={fileInputRef} onChange={(e) => {
             const activeId = (fileInputRef.current as any)._activeDocId;
