@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -37,6 +34,7 @@ import SkeletonLoader from './components/SkeletonLoader';
 import SortModal, { SortConfig } from './components/SortModal';
 import ImportPreviewModal from './components/ImportPreviewModal';
 import CrisisDashboard from './components/CrisisDashboard';
+
 
 declare const XLSX: any;
 
@@ -1212,7 +1210,7 @@ const App: React.FC = () => {
                                 />
                             </>
                         )}
-                        {activeTab === 'orgChart' && <OrganizationalChartView />}
+                        {activeTab === 'orgChart' && <OrganizationalChartView employees={employees} />}
                         {activeTab === 'officeDirectory' && (
                             <OfficeDirectory
                                 contacts={officeContacts}
