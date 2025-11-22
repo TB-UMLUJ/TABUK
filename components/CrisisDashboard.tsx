@@ -1,17 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
     FireIcon, 
     PhoneIcon, 
     UserGroupIcon, 
+    BellIcon,
 } from '../icons/Icons';
-import { Employee } from '../types';
+import { Employee, Task } from '../types';
 
 interface CrisisDashboardProps {
     employees: Employee[];
+    tasks: Task[];
 }
 
-const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees }) => {
+const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees, tasks }) => {
     const { toggleCrisisMode } = useTheme();
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -26,6 +29,8 @@ const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees }) => {
         e.job_title.includes('تمريض') || 
         e.job_title.includes('أمن')
     ).slice(0, 6);
+    
+    const criticalTasks = tasks.filter(t => !t.is_completed).slice(0, 4);
 
     const emergencyContacts = [
         { name: 'غرفة القيادة والتحكم', number: '937' },
@@ -130,6 +135,24 @@ const CrisisDashboard: React.FC<CrisisDashboardProps> = ({ employees }) => {
                             </ul>
                         </div>
                     </div>
+                    
+                    <div className="lg:col-span-2 bg-gray-800/60 backdrop-blur-sm border border-red-500/30 rounded-xl overflow-hidden shadow-lg flex flex-col">
+                        <div className="bg-red-900/40 p-4 border-b border-red-500/20 flex items-center gap-2">
+                            <BellIcon className="w-6 h-6 text-yellow-300" />
+                            <h2 className="text-lg md:text-xl font-bold text-white">المهام العاجلة</h2>
+                        </div>
+                        <div className="p-4 space-y-3 overflow-y-auto flex-grow">
+                            {criticalTasks.length > 0 ? criticalTasks.map((task, idx) => (
+                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-900/50 border border-yellow-500/20 rounded-lg">
+                                    <span className="text-base text-gray-200">{task.title}</span>
+                                    {task.due_date && <span className="text-xs text-yellow-300 font-semibold" dir="ltr">{new Date(task.due_date).toLocaleDateString('en-CA')}</span>}
+                                </div>
+                            )) : (
+                                <p className="text-center text-gray-400 py-4">لا توجد مهام عاجلة.</p>
+                            )}
+                        </div>
+                    </div>
+
                 </div>
             </main>
             

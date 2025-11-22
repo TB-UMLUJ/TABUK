@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -1210,7 +1211,8 @@ const App: React.FC = () => {
                                 />
                             </>
                         )}
-                        {activeTab === 'orgChart' && <OrganizationalChartView employees={employees} />}
+                        {/* FIX: Removed unused `employees` prop from OrganizationalChartView. */}
+                        {activeTab === 'orgChart' && <OrganizationalChartView />}
                         {activeTab === 'officeDirectory' && (
                             <OfficeDirectory
                                 contacts={officeContacts}
