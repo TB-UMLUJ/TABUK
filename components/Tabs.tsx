@@ -24,20 +24,20 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
     const visibleTabs = allTabs.filter(tab => !(tab as any).requiredPermission || hasPermission((tab as any).requiredPermission));
 
     return (
-        <div className="hidden md:block border-b border-gray-200 mb-6 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+        <div className="md:p-4">
+            <nav className="flex flex-col space-y-2" aria-label="Tabs">
                 {visibleTabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabId)}
                         className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm flex items-center gap-2
+                            whitespace-nowrap py-3 px-4 rounded-lg font-semibold text-sm flex items-center gap-3 text-right
                             ${
                                 activeTab === tab.id
-                                    ? 'border-accent text-accent dark:border-accent-dark dark:text-accent-dark'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600'
+                                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light'
+                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
                             }
-                            transition-colors focus:outline-none
+                            transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-gray-800
                         `}
                         aria-current={activeTab === tab.id ? 'page' : undefined}
                     >

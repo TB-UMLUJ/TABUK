@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -8,7 +9,7 @@ import EmployeeList from './components/EmployeeList';
 import EmployeeProfileModal from './components/EmployeeProfileModal';
 import LoginScreen from './components/LoginScreen';
 import { useToast } from './contexts/ToastContext';
-import Tabs from './components/Tabs';
+import Sidebar from './components/Sidebar'; // New Sidebar Import
 import OrganizationalChartView from './components/OrganizationalChartView';
 import AddEmployeeOnboarding from './components/AddEmployeeOnboarding';
 import ImportProgressModal from './components/ImportProgressModal';
@@ -23,7 +24,7 @@ import TransactionDetailModal from './components/TransactionDetailModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import { mockTasks } from './data/mockTasks';
 import { mockTransactions } from './data/mockTransactions';
-import { mockEmployees } from './data/mockEmployees'; // Import mock employees
+import { mockEmployees } from './data/mockEmployees';
 import SettingsScreen from './components/SettingsScreen';
 import StatisticsView from './components/StatisticsView';
 import { useAuth } from './contexts/AuthContext';
@@ -1167,7 +1168,7 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-row">
             {isCrisisMode && (
                 <CrisisDashboard 
                     employees={employees} 
@@ -1175,90 +1176,98 @@ const App: React.FC = () => {
                 />
             )}
 
-            <Header 
-                onOpenSettings={() => setShowSettings(true)}
-             />
+            {/* New Sidebar for Desktop (Right side in RTL) */}
+            <Sidebar 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                onOpenSettings={() => setShowSettings(true)} 
+            />
             
-            <main className="container mx-auto px-3 md:px-6 flex-grow pb-24 md:pb-6">
-                 <Tabs activeTab={activeTab} setActiveTab={(tab) => {
-                    setActiveTab(tab);
-                 }} />
-
-                 {loading ? (
-                    <SkeletonLoader activeTab={activeTab} />
-                 ) : (
-                    <div key={activeTab} className="animate-tab-content-in">
-                        {activeTab === 'directory' && (
-                            <>
-                                <SearchAndFilter
-                                    searchTerm={employeeSearchTerm}
-                                    onSearchChange={setEmployeeSearchTerm}
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Header for Mobile (Hidden on Desktop) */}
+                <div className="md:hidden sticky top-0 z-30">
+                    <Header onOpenSettings={() => setShowSettings(true)} />
+                </div>
+            
+                <main className="container mx-auto px-3 md:px-6 flex-grow pb-24 md:py-6">
+                    {loading ? (
+                        <SkeletonLoader activeTab={activeTab} />
+                    ) : (
+                        <div key={activeTab} className="animate-tab-content-in">
+                            {activeTab === 'directory' && (
+                                <>
+                                    <SearchAndFilter
+                                        searchTerm={employeeSearchTerm}
+                                        onSearchChange={setEmployeeSearchTerm}
+                                        onImportClick={handleGenericImport}
+                                        onAddEmployeeClick={() => { setEmployeeToEdit(null); setShowAddEmployeeOnboarding(true); }}
+                                        onExportClick={handleExportEmployees}
+                                        onSortClick={() => setShowSortModal(true)}
+                                        employees={employees}
+                                        activeFilters={activeFilters}
+                                        onFilterChange={setActiveFilters}
+                                    />
+                                    <EmployeeList
+                                        employees={visibleEmployees}
+                                        onSelectEmployee={setSelectedEmployee}
+                                        onLoadMore={loadMoreEmployees}
+                                        hasMore={hasMoreEmployees}
+                                        isLoadingMore={isLoadingMore}
+                                    />
+                                </>
+                            )}
+                            {activeTab === 'orgChart' && <OrganizationalChartView />}
+                            {activeTab === 'officeDirectory' && (
+                                <OfficeDirectory
+                                    contacts={officeContacts}
+                                    onAddContact={() => { setContactToEdit(null); setShowAddOfficeContactModal(true); }}
+                                    onEditContact={(contact) => { setContactToEdit(contact); setShowAddOfficeContactModal(true); }}
+                                    onDeleteContact={handleDeleteOfficeContact}
                                     onImportClick={handleGenericImport}
-                                    onAddEmployeeClick={() => { setEmployeeToEdit(null); setShowAddEmployeeOnboarding(true); }}
-                                    onExportClick={handleExportEmployees}
-                                    onSortClick={() => setShowSortModal(true)}
-                                    employees={employees}
-                                    activeFilters={activeFilters}
-                                    onFilterChange={setActiveFilters}
+                                    onExportClick={handleExportOfficeContacts}
                                 />
-                                <EmployeeList
-                                    employees={visibleEmployees}
-                                    onSelectEmployee={setSelectedEmployee}
-                                    onLoadMore={loadMoreEmployees}
-                                    hasMore={hasMoreEmployees}
-                                    isLoadingMore={isLoadingMore}
+                            )}
+                            {activeTab === 'tasks' && (
+                                <TasksView 
+                                    tasks={tasks}
+                                    onAddTask={() => { 
+                                        setTaskToEdit(null); 
+                                        setShowAddTaskModal(true); 
+                                    }}
+                                    onToggleComplete={handleToggleTaskComplete}
+                                    onSelectTask={setSelectedTask}
+                                    onImportClick={() => addToast('استيراد المهام غير مدعوم', '', 'info')}
+                                    onExportClick={() => addToast('تصدير المهام غير مدعوم', '', 'info')}
                                 />
-                            </>
-                        )}
-                        {activeTab === 'orgChart' && <OrganizationalChartView employees={employees} />}
-                        {activeTab === 'officeDirectory' && (
-                            <OfficeDirectory
-                                contacts={officeContacts}
-                                onAddContact={() => { setContactToEdit(null); setShowAddOfficeContactModal(true); }}
-                                onEditContact={(contact) => { setContactToEdit(contact); setShowAddOfficeContactModal(true); }}
-                                onDeleteContact={handleDeleteOfficeContact}
-                                onImportClick={handleGenericImport}
-                                onExportClick={handleExportOfficeContacts}
-                            />
-                        )}
-                         {activeTab === 'tasks' && (
-                            <TasksView 
-                                tasks={tasks}
-                                onAddTask={() => { 
-                                    setTaskToEdit(null); 
-                                    setShowAddTaskModal(true); 
-                                }}
-                                onToggleComplete={handleToggleTaskComplete}
-                                onSelectTask={setSelectedTask}
-                                onImportClick={() => addToast('استيراد المهام غير مدعوم', '', 'info')}
-                                onExportClick={() => addToast('تصدير المهام غير مدعوم', '', 'info')}
-                            />
-                         )}
-                         {activeTab === 'transactions' && (
-                            <TransactionsView
-                                transactions={transactions}
-                                onAddTransaction={() => { setTransactionToEdit(null); setShowAddTransactionModal(true); }}
-                                onEditTransaction={(t) => { setTransactionToEdit(t); setShowAddTransactionModal(true); }}
-                                onDeleteTransaction={handleDeleteTransaction}
-                                onSelectTransaction={setSelectedTransaction}
-                                onCycleStatus={handleCycleTransactionStatus}
-                                onImportClick={() => addToast('استيراد المعاملات غير مدعوم', '', 'info')}
-                                onExportClick={() => addToast('تصدير المعاملات غير مدعوم', '', 'info')}
-                            />
-                         )}
-                         {activeTab === 'statistics' && <StatisticsView 
-                            currentUser={currentUser} 
-                            employees={employees} 
-                            transactions={transactions} 
-                            officeContacts={officeContacts} 
-                            tasks={tasks} 
-                            healthCenters={healthCenters}
-                            onSaveHealthCenter={handleSaveHealthCenter}
-                            onDeleteHealthCenter={handleDeleteHealthCenter}
-                         />}
-                    </div>
-                 )}
-            </main>
+                            )}
+                            {activeTab === 'transactions' && (
+                                <TransactionsView
+                                    transactions={transactions}
+                                    onAddTransaction={() => { setTransactionToEdit(null); setShowAddTransactionModal(true); }}
+                                    onEditTransaction={(t) => { setTransactionToEdit(t); setShowAddTransactionModal(true); }}
+                                    onDeleteTransaction={handleDeleteTransaction}
+                                    onSelectTransaction={setSelectedTransaction}
+                                    onCycleStatus={handleCycleTransactionStatus}
+                                    onImportClick={() => addToast('استيراد المعاملات غير مدعوم', '', 'info')}
+                                    onExportClick={() => addToast('تصدير المعاملات غير مدعوم', '', 'info')}
+                                />
+                            )}
+                            {activeTab === 'statistics' && <StatisticsView 
+                                currentUser={currentUser} 
+                                employees={employees} 
+                                transactions={transactions} 
+                                officeContacts={officeContacts} 
+                                tasks={tasks} 
+                                healthCenters={healthCenters}
+                                onSaveHealthCenter={handleSaveHealthCenter}
+                                onDeleteHealthCenter={handleDeleteHealthCenter}
+                            />}
+                        </div>
+                    )}
+                </main>
+            </div>
+
 
             <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
             

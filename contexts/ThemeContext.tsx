@@ -8,6 +8,7 @@ interface AppSettings {
     mainLogoUrl: string;
     headerLogoUrl: string;
     loginLogoUrl: string;
+    sidebarLogoUrl: string; // New property for sidebar specific logo
 }
 
 interface ThemeContextType {
@@ -22,6 +23,7 @@ const defaultLogos: AppSettings = {
     mainLogoUrl: 'https://c.top4top.io/p_35899m4de1.png',
     headerLogoUrl: 'https://i.ibb.co/7bQ07Pz/sgh-logo.png',
     loginLogoUrl: 'https://c.top4top.io/p_35899m4de1.png',
+    sidebarLogoUrl: 'https://i.ibb.co/7bQ07Pz/sgh-logo.png', // Default fallback same as header
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -71,6 +73,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 const mainLogo = data.find(l => l.name === 'main_logo');
                 const headerLogo = data.find(l => l.name === 'header_logo');
                 const loginLogo = data.find(l => l.name === 'health_holding');
+                const sidebarLogo = data.find(l => l.name === 'sidebar_logo'); // Fetch specific sidebar logo
 
                 if (mainLogo?.image_url) {
                     fetchedLogos.mainLogoUrl = mainLogo.image_url;
@@ -82,6 +85,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     fetchedLogos.loginLogoUrl = loginLogo.image_url;
                 } else if (mainLogo?.image_url) {
                     fetchedLogos.loginLogoUrl = mainLogo.image_url;
+                }
+                
+                // Set sidebar logo if found in DB, otherwise it falls back to default
+                if (sidebarLogo?.image_url) {
+                    fetchedLogos.sidebarLogoUrl = sidebarLogo.image_url;
+                } else if (headerLogo?.image_url) {
+                     // Fallback to header logo if specific sidebar logo isn't set in DB
+                    fetchedLogos.sidebarLogoUrl = headerLogo.image_url;
                 }
             }
             setLogos(fetchedLogos);
@@ -110,7 +121,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;

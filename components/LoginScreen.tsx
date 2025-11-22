@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { UserIcon, KeyIcon, ArrowLeftOnRectangleIcon, CheckCircleIcon, XCircleIcon, InformationCircleIcon, FingerprintIcon } from '../icons/Icons';
 import ThemeToggle from './ThemeToggle';
@@ -67,7 +68,7 @@ const WelcomeAnimation: React.FC<{ onComplete: () => void; currentUser: BaseUser
 
     return (
         <div className="text-center animate-fade-in py-8">
-            <div className="flex flex-col items-center justify-center gap-4 mb-8">
+            <div className="flex flex-row flex-wrap items-center justify-center gap-3 mb-8">
                 <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500">
                         مرحباً بعودتك

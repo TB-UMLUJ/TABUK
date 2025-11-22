@@ -70,7 +70,7 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onToggleComplet
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">المهام القادمة ({upcomingTasks.length})</h2>
 
             {upcomingTasks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {upcomingTasks.map(task => (
                         <TaskCard
                             key={task.id}
@@ -89,7 +89,7 @@ const TasksView: React.FC<TasksViewProps> = ({ tasks, onAddTask, onToggleComplet
             {completedTasks.length > 0 && (
                 <>
                     <h2 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-4">المهام المكتملة ({completedTasks.length})</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {completedTasks.map(task => (
                             <TaskCard
                                 key={task.id}
