@@ -1,6 +1,1 @@
-{
-  "name": "tabuk-health-cluster-static",
-  "version": "1.0.0",
-  "description": "Static deployment configuration for Vercel.",
-  "private": true
-}
+{}
