@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Theme = 'light' | 'dark';
@@ -28,6 +28,9 @@ const defaultLogos: AppSettings = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// رابط صوت الإنذار (يمكنك تغييره لاحقاً بملف محلي)
+const CRISIS_ALARM_SOUND = 'https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3';
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
@@ -42,6 +45,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   const [logos, setLogos] = useState<AppSettings>(defaultLogos);
   const [isCrisisMode, setIsCrisisMode] = useState(false);
+  
+  // مرجع للصوت
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -50,13 +56,42 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Crisis Mode Effect
+  // Crisis Mode Effect (Visual + Audio)
   useEffect(() => {
       if (isCrisisMode) {
           document.documentElement.classList.add('crisis-mode');
+          
+          // تشغيل الصوت
+          if (!audioRef.current) {
+              audioRef.current = new Audio(CRISIS_ALARM_SOUND);
+              audioRef.current.loop = true; // تكرار الصوت
+              audioRef.current.volume = 0.5; // مستوى الصوت 50%
+          }
+          
+          // Play sound and handle potential autoplay restrictions
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                  console.error("Auto-play was prevented:", error);
+              });
+          }
+
       } else {
           document.documentElement.classList.remove('crisis-mode');
+          
+          // إيقاف الصوت
+          if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0; // إعادة الصوت للبداية
+          }
       }
+      
+      // Cleanup function
+      return () => {
+          if (audioRef.current && !isCrisisMode) {
+               audioRef.current.pause();
+          }
+      };
   }, [isCrisisMode]);
   
   useEffect(() => {
